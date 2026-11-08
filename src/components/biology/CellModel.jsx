@@ -1,15 +1,17 @@
-import React, { useRef } from 'react'
+import React, { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Float, Sphere, Html } from '@react-three/drei'
+import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 
-// ─── MITOCHONDRIA COMPONENT ───
-export function Mitochondria({ position, rotation = [0, 0, 0], scale = 0.35, isSelected, onClick }) {
+// ============================================================
+// 1. REALISTIC MITOCHONDRIA WITH INNER FOLDED CRISTAE
+// ============================================================
+export function Mitochondria({ position, rotation = [0, 0, 0], scale = 0.38, isSelected, onClick }) {
   const meshRef = useRef()
 
   useFrame((state) => {
     if (meshRef.current) {
-      meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 2 + position[0]) * 0.03
+      meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 1.5 + position[0]) * 0.025
     }
   })
 
@@ -24,34 +26,53 @@ export function Mitochondria({ position, rotation = [0, 0, 0], scale = 0.35, isS
         onClick && onClick('mitochondria')
       }}
     >
-      {/* Outer capsule membrane */}
+      {/* Outer Membrane (Smooth bean capsule) */}
       <mesh>
-        <capsuleGeometry args={[0.35, 0.8, 16, 32]} />
-        <meshStandardMaterial
-          color={isSelected ? '#f43f5e' : '#fb7185'}
+        <capsuleGeometry args={[0.38, 0.9, 16, 32]} />
+        <meshPhysicalMaterial
+          color={isSelected ? '#fb7185' : '#f43f5e'}
           emissive={isSelected ? '#e11d48' : '#be123c'}
-          emissiveIntensity={isSelected ? 0.8 : 0.3}
-          roughness={0.4}
+          emissiveIntensity={isSelected ? 1.0 : 0.4}
+          roughness={0.25}
+          transmission={0.4}
+          opacity={0.85}
+          transparent
         />
       </mesh>
-      {/* Inner folds (cristae suggestion) */}
-      {[-0.2, 0, 0.2].map((y, i) => (
-        <mesh key={i} position={[0, y, 0]} rotation={[0, 0, Math.PI / 4]}>
-          <cylinderGeometry args={[0.26, 0.26, 0.04, 16]} />
-          <meshStandardMaterial color="#f43f5e" roughness={0.3} />
-        </mesh>
+
+      {/* Inner Membrane Folded Cristae (Realistic shelf layers) */}
+      {[-0.35, -0.18, 0, 0.18, 0.35].map((y, i) => (
+        <group key={i} position={[i % 2 === 0 ? 0.06 : -0.06, y, 0]}>
+          <mesh rotation={[0, 0, i % 2 === 0 ? 0.2 : -0.2]}>
+            <boxGeometry args={[0.48, 0.05, 0.38]} />
+            <meshStandardMaterial
+              color="#fda4af"
+              emissive="#f43f5e"
+              emissiveIntensity={0.6}
+              roughness={0.3}
+            />
+          </mesh>
+        </group>
       ))}
+
+      {/* Mitochondrial Matrix core */}
+      <mesh>
+        <capsuleGeometry args={[0.3, 0.8, 12, 16]} />
+        <meshStandardMaterial color="#881337" roughness={0.5} transparent opacity={0.6} />
+      </mesh>
     </group>
   )
 }
 
-// ─── CHLOROPLAST COMPONENT (FOR PLANT CELL) ───
-export function Chloroplast({ position, rotation = [0, 0, 0], scale = 0.4, isSelected, onClick }) {
+// ============================================================
+// 2. REALISTIC CHLOROPLAST WITH THYLAKOID GRANA DISCS
+// ============================================================
+export function Chloroplast({ position, rotation = [0, 0, 0], scale = 0.42, isSelected, onClick }) {
   const ref = useRef()
 
   useFrame((state) => {
     if (ref.current) {
-      ref.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 1.8 + position[0]) * 0.02
+      ref.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 1.4 + position[0]) * 0.02
     }
   })
 
@@ -66,32 +87,54 @@ export function Chloroplast({ position, rotation = [0, 0, 0], scale = 0.4, isSel
         onClick && onClick('chloroplast')
       }}
     >
-      {/* Oval green chloroplast body */}
-      <mesh scale={[1.2, 0.6, 0.8]}>
-        <sphereGeometry args={[0.5, 24, 24]} />
-        <meshStandardMaterial
-          color={isSelected ? '#10b981' : '#059669'}
-          emissive={isSelected ? '#34d399' : '#047857'}
-          emissiveIntensity={isSelected ? 0.8 : 0.4}
-          roughness={0.3}
+      {/* Outer Double-Membrane Oval Lens */}
+      <mesh scale={[1.3, 0.65, 0.9]}>
+        <sphereGeometry args={[0.55, 24, 24]} />
+        <meshPhysicalMaterial
+          color={isSelected ? '#34d399' : '#059669'}
+          emissive={isSelected ? '#10b981' : '#047857'}
+          emissiveIntensity={isSelected ? 1.0 : 0.45}
+          roughness={0.2}
+          transmission={0.45}
+          opacity={0.88}
+          transparent
         />
       </mesh>
-      {/* Thylakoid stacks (Granum) */}
-      {[-0.2, 0.2].map((x, i) => (
-        <group key={i} position={[x, 0, 0]}>
-          {[ -0.06, 0, 0.06 ].map((y, j) => (
-            <mesh key={j} position={[0, y, 0]}>
-              <cylinderGeometry args={[0.12, 0.12, 0.02, 12]} />
-              <meshStandardMaterial color="#34d399" emissive="#10b981" emissiveIntensity={0.6} />
+
+      {/* Multiple Thylakoid Grana Stacks (Green Coin Piles) */}
+      {[
+        [-0.32, 0, 0.1],
+        [-0.1, 0.05, -0.15],
+        [0.15, -0.05, 0.15],
+        [0.35, 0, -0.1],
+      ].map((pos, stackIdx) => (
+        <group key={stackIdx} position={pos}>
+          {[-0.08, -0.03, 0.02, 0.07].map((y, discIdx) => (
+            <mesh key={discIdx} position={[0, y, 0]}>
+              <cylinderGeometry args={[0.13, 0.13, 0.025, 14]} />
+              <meshStandardMaterial
+                color="#86efac"
+                emissive="#10b981"
+                emissiveIntensity={0.8}
+                roughness={0.3}
+              />
             </mesh>
           ))}
         </group>
       ))}
+
+      {/* Stroma Lamellae Connecting Wires */}
+      <mesh position={[0, 0, 0]} rotation={[0, 0.5, Math.PI / 2]}>
+        <cylinderGeometry args={[0.015, 0.015, 0.8, 8]} />
+        <meshStandardMaterial color="#4ade80" emissive="#22c55e" emissiveIntensity={0.5} />
+      </mesh>
     </group>
   )
 }
 
-// ─── GOLGI APPARATUS ───
+// ============================================================
+// 3. GOLGI APPARATUS WITH SECRETORY VESICLES
+// ============================================================
 export function GolgiApparatus({ position = [1.2, 0.4, 0.5], isSelected, onClick }) {
   return (
     <group
@@ -101,39 +144,48 @@ export function GolgiApparatus({ position = [1.2, 0.4, 0.5], isSelected, onClick
         onClick && onClick('golgiApparatus')
       }}
     >
-      {/* Stack of curved cisternae discs */}
+      {/* 5 Stacked Crescent Cisternae */}
       {[
-        { y: -0.2, r: 0.4, col: '#f59e0b' },
-        { y: -0.07, r: 0.48, col: '#fbbf24' },
-        { y: 0.07, r: 0.52, col: '#fcd34d' },
-        { y: 0.2, r: 0.44, col: '#f59e0b' },
-      ].map((disc, idx) => (
-        <mesh key={idx} position={[0, disc.y, 0]} rotation={[0.2, 0.3, 0]}>
-          <torusGeometry args={[disc.r, 0.05, 12, 24, Math.PI * 1.2]} />
+        { y: -0.22, r: 0.38, w: 0.06, c: '#f59e0b' },
+        { y: -0.11, r: 0.46, w: 0.065, c: '#fbbf24' },
+        { y: 0.0, r: 0.52, w: 0.07, c: '#fcd34d' },
+        { y: 0.11, r: 0.48, w: 0.065, c: '#fbbf24' },
+        { y: 0.22, r: 0.4, w: 0.06, c: '#f59e0b' },
+      ].map((cist, idx) => (
+        <mesh key={idx} position={[0, cist.y, 0]} rotation={[0.25, 0.4, 0]}>
+          <torusGeometry args={[cist.r, cist.w, 14, 28, Math.PI * 1.3]} />
           <meshStandardMaterial
-            color={isSelected ? '#fbbf24' : disc.col}
-            emissive={isSelected ? '#d97706' : '#b45309'}
-            emissiveIntensity={isSelected ? 0.8 : 0.3}
-            roughness={0.4}
+            color={isSelected ? '#fef08a' : cist.c}
+            emissive={isSelected ? '#f59e0b' : '#b45309'}
+            emissiveIntensity={isSelected ? 1.0 : 0.4}
+            roughness={0.3}
           />
         </mesh>
       ))}
-      {/* Secretory vesicles budding off */}
+
+      {/* Secretory Transport Vesicles */}
       {[
-        [0.4, 0.3, 0.2],
-        [-0.3, -0.3, 0.1],
-        [0.5, -0.1, -0.2],
+        [0.45, 0.3, 0.2],
+        [-0.35, -0.25, 0.15],
+        [0.55, -0.1, -0.2],
+        [0.2, 0.35, -0.3],
       ].map((pos, idx) => (
         <mesh key={idx} position={pos}>
-          <sphereGeometry args={[0.07, 12, 12]} />
-          <meshStandardMaterial color="#fbbf24" emissive="#f59e0b" emissiveIntensity={0.5} />
+          <sphereGeometry args={[0.08, 12, 12]} />
+          <meshStandardMaterial
+            color="#fbbf24"
+            emissive="#f59e0b"
+            emissiveIntensity={0.7}
+          />
         </mesh>
       ))}
     </group>
   )
 }
 
-// ─── ENDOPLASMIC RETICULUM (ROUGH & SMOOTH) ───
+// ============================================================
+// 4. ENDOPLASMIC RETICULUM (ROUGH WITH RIBOSOMES)
+// ============================================================
 export function EndoplasmicReticulum({ isSelected, onClick }) {
   return (
     <group
@@ -143,26 +195,25 @@ export function EndoplasmicReticulum({ isSelected, onClick }) {
         onClick && onClick('roughER')
       }}
     >
-      {/* Wavy sheets hugging nucleus */}
-      {[-0.25, 0, 0.25].map((z, idx) => (
-        <group key={idx} position={[0, 0, z]} rotation={[0, 0, idx * 0.2]}>
+      {[-0.28, 0, 0.28].map((z, idx) => (
+        <group key={idx} position={[0, 0, z]} rotation={[0, 0, idx * 0.25]}>
           <mesh>
-            <torusGeometry args={[0.7 + idx * 0.15, 0.06, 12, 24, Math.PI * 1.1]} />
+            <torusGeometry args={[0.75 + idx * 0.16, 0.07, 14, 28, Math.PI * 1.15]} />
             <meshStandardMaterial
-              color={isSelected ? '#a855f7' : '#c084fc'}
-              emissive={isSelected ? '#7c3aed' : '#581c87'}
-              emissiveIntensity={isSelected ? 0.8 : 0.2}
+              color={isSelected ? '#c084fc' : '#a855f7'}
+              emissive={isSelected ? '#9333ea' : '#6b21a8'}
+              emissiveIntensity={isSelected ? 0.9 : 0.35}
               roughness={0.3}
             />
           </mesh>
-          {/* Ribosome dots attached on rough ER */}
-          {Array.from({ length: 8 }).map((_, rIdx) => {
-            const angle = (rIdx / 8) * Math.PI * 1.1
-            const r = 0.7 + idx * 0.15
+          {/* Ribosome Granules */}
+          {Array.from({ length: 10 }).map((_, rIdx) => {
+            const angle = (rIdx / 10) * Math.PI * 1.15
+            const r = 0.75 + idx * 0.16
             return (
-              <mesh key={rIdx} position={[Math.cos(angle) * r, Math.sin(angle) * r, 0.06]}>
-                <sphereGeometry args={[0.03, 8, 8]} />
-                <meshStandardMaterial color="#facc15" emissive="#eab308" emissiveIntensity={1} />
+              <mesh key={rIdx} position={[Math.cos(angle) * r, Math.sin(angle) * r, 0.07]}>
+                <sphereGeometry args={[0.035, 8, 8]} />
+                <meshStandardMaterial color="#facc15" emissive="#ca8a04" emissiveIntensity={1} />
               </mesh>
             )
           })}
@@ -172,73 +223,82 @@ export function EndoplasmicReticulum({ isSelected, onClick }) {
   )
 }
 
-// ─── CENTRIOLES ───
+// ============================================================
+// 5. CENTRIOLES (9 MICROTUBULE TRIPLETS)
+// ============================================================
 export function Centrioles({ position = [1.2, 1.2, -0.5], isSelected, onClick }) {
   return (
     <group
       position={position}
-      scale={0.7}
+      scale={0.75}
       onClick={(e) => {
         e.stopPropagation()
         onClick && onClick('centriole')
       }}
     >
-      {/* Cylinder 1 */}
-      <mesh position={[0, 0, 0]} rotation={[0, 0, 0]}>
-        <cylinderGeometry args={[0.14, 0.14, 0.45, 16]} />
-        <meshStandardMaterial
-          color={isSelected ? '#38bdf8' : '#0284c7'}
-          emissive={isSelected ? '#0ea5e9' : '#0369a1'}
-          emissiveIntensity={isSelected ? 0.8 : 0.3}
-        />
-      </mesh>
-      {/* Perpendicular Cylinder 2 */}
-      <mesh position={[0.2, 0.2, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.14, 0.14, 0.45, 16]} />
-        <meshStandardMaterial
-          color={isSelected ? '#38bdf8' : '#0284c7'}
-          emissive={isSelected ? '#0ea5e9' : '#0369a1'}
-          emissiveIntensity={isSelected ? 0.8 : 0.3}
-        />
-      </mesh>
+      {/* Centriole Cylinder 1 */}
+      <group position={[0, 0, 0]}>
+        {Array.from({ length: 9 }).map((_, i) => {
+          const a = (i / 9) * Math.PI * 2
+          return (
+            <mesh key={i} position={[Math.cos(a) * 0.18, 0, Math.sin(a) * 0.18]}>
+              <cylinderGeometry args={[0.03, 0.03, 0.5, 8]} />
+              <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={0.6} />
+            </mesh>
+          )
+        })}
+      </group>
+
+      {/* Centriole Cylinder 2 (Perpendicular at 90°) */}
+      <group position={[0.25, 0.25, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        {Array.from({ length: 9 }).map((_, i) => {
+          const a = (i / 9) * Math.PI * 2
+          return (
+            <mesh key={i} position={[Math.cos(a) * 0.18, 0, Math.sin(a) * 0.18]}>
+              <cylinderGeometry args={[0.03, 0.03, 0.5, 8]} />
+              <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={0.6} />
+            </mesh>
+          )
+        })}
+      </group>
     </group>
   )
 }
 
 // ============================================================
-// 1. COMPLETE 3D ANIMAL CELL
+// 6. ANIMAL CELL FULL 3D MODEL
 // ============================================================
 export function AnimalCell({ selectedOrganelle, onSelectOrganelle }) {
   const groupRef = useRef()
 
   useFrame((state) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y = state.clock.elapsedTime * 0.1
+      groupRef.current.rotation.y = state.clock.elapsedTime * 0.08
     }
   })
 
   return (
     <group ref={groupRef}>
-      {/* Outer Cell Membrane (Semi-Transparent sphere cutaway) */}
+      {/* Outer Cell Membrane - Cutaway Open View */}
       <mesh
         onClick={(e) => {
           e.stopPropagation()
           onSelectOrganelle('cellMembrane')
         }}
       >
-        <sphereGeometry args={[2.5, 48, 48, 0, Math.PI * 2, 0, Math.PI * 0.85]} />
+        <sphereGeometry args={[2.6, 48, 48, 0, Math.PI * 2, 0, Math.PI * 0.82]} />
         <meshPhysicalMaterial
           color="#8b5cf6"
           transparent
           opacity={selectedOrganelle === 'cellMembrane' ? 0.6 : 0.25}
           roughness={0.1}
-          transmission={0.8}
+          transmission={0.85}
           thickness={0.5}
           side={THREE.DoubleSide}
         />
       </mesh>
 
-      {/* Central Nucleus */}
+      {/* Dense Nucleus with Cutaway Window */}
       <group
         position={[-0.2, 0, 0]}
         onClick={(e) => {
@@ -246,40 +306,26 @@ export function AnimalCell({ selectedOrganelle, onSelectOrganelle }) {
           onSelectOrganelle('nucleus')
         }}
       >
-        {/* Nucleus Outer Envelope */}
         <mesh>
-          <sphereGeometry args={[0.9, 32, 32]} />
+          <sphereGeometry args={[0.95, 32, 32, 0, Math.PI * 1.5, 0, Math.PI]} />
           <meshStandardMaterial
             color={selectedOrganelle === 'nucleus' ? '#818cf8' : '#4f46e5'}
             emissive={selectedOrganelle === 'nucleus' ? '#6366f1' : '#312e81'}
-            emissiveIntensity={selectedOrganelle === 'nucleus' ? 0.8 : 0.4}
-            roughness={0.4}
+            emissiveIntensity={selectedOrganelle === 'nucleus' ? 0.9 : 0.4}
+            roughness={0.3}
+            side={THREE.DoubleSide}
           />
         </mesh>
-        {/* Nucleolus inside */}
-        <mesh position={[0.2, 0.1, 0.2]}>
-          <sphereGeometry args={[0.3, 16, 16]} />
-          <meshStandardMaterial color="#4338ca" emissive="#3730a3" emissiveIntensity={0.8} />
+        {/* Nucleolus Core inside */}
+        <mesh position={[0.15, 0.1, 0.15]}>
+          <sphereGeometry args={[0.35, 20, 20]} />
+          <meshStandardMaterial color="#6366f1" emissive="#4338ca" emissiveIntensity={0.8} />
         </mesh>
-        {/* Nuclear pores on surface */}
-        {Array.from({ length: 16 }).map((_, i) => {
-          const phi = Math.acos(-1 + (2 * i) / 16)
-          const theta = Math.sqrt(16 * Math.PI) * phi
-          const x = 0.9 * Math.cos(theta) * Math.sin(phi)
-          const y = 0.9 * Math.sin(theta) * Math.sin(phi)
-          const z = 0.9 * Math.cos(phi)
-          return (
-            <mesh key={i} position={[x, y, z]}>
-              <circleGeometry args={[0.05, 8]} />
-              <meshBasicMaterial color="#1e1b4b" />
-            </mesh>
-          )
-        })}
       </group>
 
-      {/* Mitochondria scattered around */}
+      {/* Realistic Mitochondria */}
       <Mitochondria
-        position={[1.2, -0.8, 0.8]}
+        position={[1.3, -0.7, 0.8]}
         rotation={[0.4, 0.5, 0]}
         isSelected={selectedOrganelle === 'mitochondria'}
         onClick={onSelectOrganelle}
@@ -291,7 +337,7 @@ export function AnimalCell({ selectedOrganelle, onSelectOrganelle }) {
         onClick={onSelectOrganelle}
       />
       <Mitochondria
-        position={[0.5, 1.4, -0.6]}
+        position={[0.6, 1.4, -0.6]}
         rotation={[-0.5, 0.6, 0.2]}
         isSelected={selectedOrganelle === 'mitochondria'}
         onClick={onSelectOrganelle}
@@ -329,125 +375,115 @@ export function AnimalCell({ selectedOrganelle, onSelectOrganelle }) {
             onSelectOrganelle('lysosome')
           }}
         >
-          <sphereGeometry args={[0.16, 16, 16]} />
+          <sphereGeometry args={[0.18, 16, 16]} />
           <meshStandardMaterial
-            color={selectedOrganelle === 'lysosome' ? '#f97316' : '#ea580c'}
-            emissive={selectedOrganelle === 'lysosome' ? '#fb923c' : '#c2410c'}
-            emissiveIntensity={selectedOrganelle === 'lysosome' ? 0.9 : 0.4}
+            color={selectedOrganelle === 'lysosome' ? '#fb923c' : '#ea580c'}
+            emissive={selectedOrganelle === 'lysosome' ? '#f97316' : '#9a3412'}
+            emissiveIntensity={selectedOrganelle === 'lysosome' ? 1.0 : 0.4}
           />
         </mesh>
       ))}
-
-      {/* Free Ribosomes (Tiny yellow spheres in cytoplasm) */}
-      {Array.from({ length: 30 }).map((_, i) => {
-        const r = 1.2 + Math.random() * 1.0
-        const theta = Math.random() * Math.PI * 2
-        const phi = Math.random() * Math.PI
-        return (
-          <mesh
-            key={i}
-            position={[
-              r * Math.sin(phi) * Math.cos(theta),
-              r * Math.sin(phi) * Math.sin(theta),
-              r * Math.cos(phi),
-            ]}
-          >
-            <sphereGeometry args={[0.025, 6, 6]} />
-            <meshBasicMaterial color="#facc15" />
-          </mesh>
-        )
-      })}
     </group>
   )
 }
 
 // ============================================================
-// 2. COMPLETE 3D PLANT CELL
+// 7. REALISTIC HEXAGONAL PLANT CELL WITH GIANT CENTRAL VACUOLE
 // ============================================================
 export function PlantCell({ selectedOrganelle, onSelectOrganelle }) {
   const groupRef = useRef()
 
   useFrame((state) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y = state.clock.elapsedTime * 0.1
+      groupRef.current.rotation.y = state.clock.elapsedTime * 0.08
     }
   })
 
   return (
     <group ref={groupRef}>
-      {/* Rigid Polygonal/Box Cell Wall (Outer green boundary) */}
+      {/* REALISTIC HEXAGONAL PRISM CELL WALL (Not a plain cube!) */}
       <mesh
         onClick={(e) => {
           e.stopPropagation()
           onSelectOrganelle('cellWall')
         }}
       >
-        <boxGeometry args={[4.2, 3.2, 2.8]} />
+        <cylinderGeometry args={[2.5, 2.5, 3.2, 6, 1, true]} />
         <meshPhysicalMaterial
           color="#047857"
           transparent
-          opacity={selectedOrganelle === 'cellWall' ? 0.7 : 0.3}
+          opacity={selectedOrganelle === 'cellWall' ? 0.75 : 0.35}
           roughness={0.2}
-          wireframe={false}
           side={THREE.DoubleSide}
         />
       </mesh>
+      {/* Thick Green Cellulose Framework Edges */}
+      <mesh>
+        <cylinderGeometry args={[2.52, 2.52, 0.1, 6]} position={[0, 1.6, 0]} />
+        <meshStandardMaterial color="#065f46" roughness={0.3} />
+      </mesh>
+      <mesh>
+        <cylinderGeometry args={[2.52, 2.52, 0.1, 6]} position={[0, -1.6, 0]} />
+        <meshStandardMaterial color="#065f46" roughness={0.3} />
+      </mesh>
 
-      {/* Giant Central Vacuole (occupies most of cell) */}
+      {/* GIANT CENTRAL VACUOLE (Occupies 70% of Plant Cell Interior) */}
       <mesh
-        position={[0.2, -0.1, 0]}
+        position={[0.2, 0, 0]}
         onClick={(e) => {
           e.stopPropagation()
           onSelectOrganelle('centralVacuole')
         }}
       >
-        <sphereGeometry args={[1.2, 32, 32]} />
+        <sphereGeometry args={[1.5, 32, 32]} />
         <meshPhysicalMaterial
           color="#38bdf8"
+          emissive="#0284c7"
+          emissiveIntensity={selectedOrganelle === 'centralVacuole' ? 0.6 : 0.15}
           transparent
-          opacity={selectedOrganelle === 'centralVacuole' ? 0.8 : 0.4}
-          roughness={0.1}
-          transmission={0.8}
+          opacity={selectedOrganelle === 'centralVacuole' ? 0.85 : 0.45}
+          roughness={0.05}
+          transmission={0.88}
         />
       </mesh>
 
-      {/* Displaced Nucleus pushed to side */}
+      {/* Displaced Nucleus pushed against the cell wall by the vacuole */}
       <mesh
-        position={[-1.3, 0.6, 0.4]}
+        position={[-1.4, 0.7, 0.4]}
         onClick={(e) => {
           e.stopPropagation()
           onSelectOrganelle('nucleus')
         }}
       >
-        <sphereGeometry args={[0.6, 24, 24]} />
+        <sphereGeometry args={[0.65, 24, 24]} />
         <meshStandardMaterial
           color={selectedOrganelle === 'nucleus' ? '#818cf8' : '#4f46e5'}
           emissive="#312e81"
-          emissiveIntensity={0.5}
+          emissiveIntensity={0.6}
         />
       </mesh>
 
-      {/* Chloroplasts (Plant cell signature) */}
+      {/* Chloroplasts circling the periphery */}
       <Chloroplast
-        position={[-1.4, -0.7, 0.6]}
+        position={[-1.4, -0.8, 0.6]}
         rotation={[0.3, 0.4, 0]}
         isSelected={selectedOrganelle === 'chloroplast'}
         onClick={onSelectOrganelle}
       />
       <Chloroplast
-        position={[1.3, 0.8, -0.5]}
+        position={[1.4, 0.9, -0.5]}
         rotation={[-0.4, 0.2, 0.5]}
         isSelected={selectedOrganelle === 'chloroplast'}
         onClick={onSelectOrganelle}
       />
       <Chloroplast
-        position={[1.2, -0.8, 0.4]}
+        position={[1.3, -0.9, 0.5]}
         rotation={[0.2, -0.5, 0.1]}
         isSelected={selectedOrganelle === 'chloroplast'}
         onClick={onSelectOrganelle}
       />
       <Chloroplast
-        position={[-0.8, 1.0, -0.6]}
+        position={[-0.8, 1.2, -0.7]}
         rotation={[0.6, 0.1, -0.3]}
         isSelected={selectedOrganelle === 'chloroplast'}
         onClick={onSelectOrganelle}
@@ -455,9 +491,9 @@ export function PlantCell({ selectedOrganelle, onSelectOrganelle }) {
 
       {/* Mitochondria */}
       <Mitochondria
-        position={[-0.3, -1.1, 0.7]}
+        position={[-0.4, -1.2, 0.8]}
         rotation={[0, 0.5, 0]}
-        scale={0.28}
+        scale={0.3}
         isSelected={selectedOrganelle === 'mitochondria'}
         onClick={onSelectOrganelle}
       />
@@ -466,50 +502,45 @@ export function PlantCell({ selectedOrganelle, onSelectOrganelle }) {
 }
 
 // ============================================================
-// 3. DETAILED NUCLEUS ARCHITECTURE
+// 8. DETAILED NUCLEUS ARCHITECTURE
 // ============================================================
-export function NucleusStructureDetail({ onSelectPart, selectedPart }) {
+export function NucleusStructureDetail() {
   return (
     <group>
-      {/* Outer Membrane Hemisphere Cutaway */}
+      {/* Double-Membrane Nuclear Envelope Cutaway */}
       <mesh>
         <sphereGeometry args={[2.0, 32, 32, 0, Math.PI * 1.5, 0, Math.PI]} />
         <meshStandardMaterial
           color="#4f46e5"
           transparent
-          opacity={0.7}
+          opacity={0.8}
           side={THREE.DoubleSide}
           roughness={0.3}
         />
       </mesh>
 
-      {/* Inner Nucleolus */}
+      {/* Dense Nucleolus */}
       <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={[0.7, 24, 24]} />
+        <sphereGeometry args={[0.75, 24, 24]} />
         <meshStandardMaterial
-          color="#6366f1"
+          color="#818cf8"
           emissive="#4338ca"
-          emissiveIntensity={0.8}
+          emissiveIntensity={0.9}
         />
       </mesh>
 
-      {/* Chromatin Fiber Filaments */}
-      {Array.from({ length: 8 }).map((_, i) => (
-        <ChromatinFilament key={i} index={i} />
-      ))}
-
-      {/* Nuclear Pores on Envelope */}
-      {Array.from({ length: 12 }).map((_, i) => {
-        const phi = (i / 12) * Math.PI
-        const theta = (i / 12) * Math.PI * 1.5
+      {/* Nuclear Pores */}
+      {Array.from({ length: 14 }).map((_, i) => {
+        const phi = (i / 14) * Math.PI
+        const theta = (i / 14) * Math.PI * 1.5
         const x = 2.0 * Math.sin(phi) * Math.cos(theta)
         const y = 2.0 * Math.sin(phi) * Math.sin(theta)
         const z = 2.0 * Math.cos(phi)
         return (
           <group key={i} position={[x, y, z]}>
             <mesh>
-              <torusGeometry args={[0.14, 0.03, 8, 16]} />
-              <meshStandardMaterial color="#c7d2fe" emissive="#818cf8" emissiveIntensity={0.8} />
+              <torusGeometry args={[0.15, 0.035, 8, 16]} />
+              <meshStandardMaterial color="#c7d2fe" emissive="#818cf8" emissiveIntensity={0.9} />
             </mesh>
           </group>
         )
@@ -518,182 +549,104 @@ export function NucleusStructureDetail({ onSelectPart, selectedPart }) {
   )
 }
 
-function ChromatinFilament({ index }) {
-  const curve = useMemo(() => {
-    const pts = []
-    const angleOffset = (index / 8) * Math.PI * 2
-    for (let i = 0; i < 20; i++) {
-      const t = i / 19
-      const r = 0.8 + t * 0.9
-      const a = angleOffset + t * 3
-      pts.push(
-        new THREE.Vector3(
-          Math.cos(a) * r,
-          (Math.sin(t * 10) * 0.3) + (t - 0.5) * 1.2,
-          Math.sin(a) * r
-        )
-      )
+// ============================================================
+// 9. MULTI-CYCLE SUCCESSIVE MITOSIS CELL DIVISION (1 → 2 → 4 → 8)
+// ============================================================
+export function MultiCellMitosisScene({
+  cellCount = 1, // 1, 2, 4, 8
+  divisionProgress = 0, // 0 (parent) to 1 (two daughter cells)
+}) {
+  // Generate cell positions based on count
+  const cells = useMemo(() => {
+    if (cellCount === 1) return [{ x: 0, y: 0, scale: 1.4 }]
+    if (cellCount === 2) {
+      return [
+        { x: -1.2, y: 0, scale: 1.0 },
+        { x: 1.2, y: 0, scale: 1.0 },
+      ]
     }
-    return new THREE.CatmullRomCurve3(pts)
-  }, [index])
+    if (cellCount === 4) {
+      return [
+        { x: -1.2, y: 1.0, scale: 0.75 },
+        { x: 1.2, y: 1.0, scale: 0.75 },
+        { x: -1.2, y: -1.0, scale: 0.75 },
+        { x: 1.2, y: -1.0, scale: 0.75 },
+      ]
+    }
+    // 8 Cells
+    return [
+      { x: -2.0, y: 1.0, scale: 0.55 },
+      { x: -0.7, y: 1.0, scale: 0.55 },
+      { x: 0.7, y: 1.0, scale: 0.55 },
+      { x: 2.0, y: 1.0, scale: 0.55 },
+      { x: -2.0, y: -1.0, scale: 0.55 },
+      { x: -0.7, y: -1.0, scale: 0.55 },
+      { x: 0.7, y: -1.0, scale: 0.55 },
+      { x: 2.0, y: -1.0, scale: 0.55 },
+    ]
+  }, [cellCount])
 
   return (
-    <mesh>
-      <tubeGeometry args={[curve, 32, 0.02, 6, false]} />
-      <meshStandardMaterial color="#a5b4fc" emissive="#6366f1" emissiveIntensity={0.3} />
-    </mesh>
+    <group position={[0, 0, 0]}>
+      {cells.map((cell, idx) => (
+        <DividingCellUnit
+          key={idx}
+          position={[cell.x, cell.y, 0]}
+          scale={cell.scale}
+          progress={divisionProgress}
+        />
+      ))}
+    </group>
   )
 }
 
-// ============================================================
-// 4. MITOSIS CELL DIVISION ANIMATION SCENE
-// ============================================================
-export function MitosisScene({ stageIndex = 0 }) {
-  // Stages: 0: Interphase, 1: Prophase, 2: Metaphase, 3: Anaphase, 4: Telophase, 5: Cytokinesis
-  const groupRef = useRef()
+function DividingCellUnit({ position, scale, progress }) {
+  // progress 0: spherical single cell
+  // progress 0.5: elongated with cleavage furrow (pinching)
+  // progress 1: two fully separated daughter cells
+  const pinch = Math.sin(progress * Math.PI) * 0.4
+  const separation = progress * 0.9
 
   return (
-    <group ref={groupRef}>
-      {stageIndex === 0 && (
-        // Interphase: Normal spherical cell with chromatin inside nucleus
-        <group>
-          <mesh>
-            <sphereGeometry args={[2.0, 32, 32]} />
-            <meshPhysicalMaterial color="#8b5cf6" transparent opacity={0.3} />
-          </mesh>
-          <mesh>
-            <sphereGeometry args={[0.9, 24, 24]} />
-            <meshStandardMaterial color="#4f46e5" />
-          </mesh>
-        </group>
-      )}
+    <group position={position} scale={scale}>
+      {/* Upper/Left Daughter Pole */}
+      <group position={[-separation * 0.5, 0, 0]}>
+        <mesh scale={[1.0 + pinch * 0.3, 1.0 - pinch * 0.2, 1.0 - pinch * 0.2]}>
+          <sphereGeometry args={[0.8, 32, 32]} />
+          <meshPhysicalMaterial
+            color="#8b5cf6"
+            emissive="#6d28d9"
+            emissiveIntensity={0.35}
+            transparent
+            opacity={0.4}
+            roughness={0.2}
+          />
+        </mesh>
+        {/* Nucleus */}
+        <mesh position={[0, 0, 0]}>
+          <sphereGeometry args={[0.32, 16, 16]} />
+          <meshStandardMaterial color="#4f46e5" emissive="#3730a3" emissiveIntensity={0.6} />
+        </mesh>
+      </group>
 
-      {stageIndex === 1 && (
-        // Prophase: Chromosomes condensing into X shapes, spindle asters at poles
-        <group>
-          <mesh>
-            <sphereGeometry args={[2.0, 32, 32]} />
-            <meshPhysicalMaterial color="#8b5cf6" transparent opacity={0.3} />
+      {/* Lower/Right Daughter Pole (Appears as cell cleaves) */}
+      {progress > 0.1 && (
+        <group position={[separation * 0.5, 0, 0]}>
+          <mesh scale={[1.0 + pinch * 0.3, 1.0 - pinch * 0.2, 1.0 - pinch * 0.2]}>
+            <sphereGeometry args={[0.8, 32, 32]} />
+            <meshPhysicalMaterial
+              color="#8b5cf6"
+              emissive="#6d28d9"
+              emissiveIntensity={0.35}
+              transparent
+              opacity={0.4}
+              roughness={0.2}
+            />
           </mesh>
-          {/* Centrosomes at poles */}
-          <mesh position={[0, 1.6, 0]}>
-            <sphereGeometry args={[0.15, 12, 12]} />
-            <meshStandardMaterial color="#f59e0b" emissive="#d97706" emissiveIntensity={1} />
+          <mesh position={[0, 0, 0]}>
+            <sphereGeometry args={[0.32, 16, 16]} />
+            <meshStandardMaterial color="#4f46e5" emissive="#3730a3" emissiveIntensity={0.6} />
           </mesh>
-          <mesh position={[0, -1.6, 0]}>
-            <sphereGeometry args={[0.15, 12, 12]} />
-            <meshStandardMaterial color="#f59e0b" emissive="#d97706" emissiveIntensity={1} />
-          </mesh>
-          {/* Condensing Chromosomes */}
-          {[-0.6, 0, 0.6].map((x, i) => (
-            <group key={i} position={[x, (i - 1) * 0.3, 0]}>
-              <mesh rotation={[0, 0, Math.PI / 4]}>
-                <boxGeometry args={[0.08, 0.45, 0.08]} />
-                <meshStandardMaterial color="#ec4899" />
-              </mesh>
-              <mesh rotation={[0, 0, -Math.PI / 4]}>
-                <boxGeometry args={[0.08, 0.45, 0.08]} />
-                <meshStandardMaterial color="#ec4899" />
-              </mesh>
-            </group>
-          ))}
-        </group>
-      )}
-
-      {stageIndex === 2 && (
-        // Metaphase: Chromosomes lined up at the equator plate!
-        <group>
-          <mesh>
-            <sphereGeometry args={[2.0, 32, 32]} />
-            <meshPhysicalMaterial color="#8b5cf6" transparent opacity={0.25} />
-          </mesh>
-          {/* Spindle poles */}
-          <mesh position={[0, 1.7, 0]}>
-            <sphereGeometry args={[0.15, 12, 12]} />
-            <meshStandardMaterial color="#f59e0b" />
-          </mesh>
-          <mesh position={[0, -1.7, 0]}>
-            <sphereGeometry args={[0.15, 12, 12]} />
-            <meshStandardMaterial color="#f59e0b" />
-          </mesh>
-          {/* Chromosomes at equator plate */}
-          {[-0.9, -0.3, 0.3, 0.9].map((x, i) => (
-            <group key={i} position={[x, 0, 0]}>
-              <mesh rotation={[0, 0, Math.PI / 4]}>
-                <boxGeometry args={[0.08, 0.55, 0.08]} />
-                <meshStandardMaterial color="#ec4899" />
-              </mesh>
-              <mesh rotation={[0, 0, -Math.PI / 4]}>
-                <boxGeometry args={[0.08, 0.55, 0.08]} />
-                <meshStandardMaterial color="#ec4899" />
-              </mesh>
-              {/* Spindle fiber connecting to poles */}
-              <line>
-                <bufferGeometry>
-                  <bufferAttribute
-                    attach="attributes-position"
-                    count={3}
-                    array={new Float32Array([0, 1.7 - 0, 0, 0, 0, 0, 0, -1.7, 0])}
-                    itemSize={3}
-                  />
-                </bufferGeometry>
-                <lineBasicMaterial color="#38bdf8" transparent opacity={0.4} />
-              </line>
-            </group>
-          ))}
-        </group>
-      )}
-
-      {stageIndex === 3 && (
-        // Anaphase: Chromatids pulling apart to opposite poles!
-        <group>
-          <mesh scale={[1.1, 1.3, 1]}>
-            <sphereGeometry args={[1.9, 32, 32]} />
-            <meshPhysicalMaterial color="#8b5cf6" transparent opacity={0.25} />
-          </mesh>
-          {/* Moving North */}
-          {[-0.7, 0, 0.7].map((x, i) => (
-            <mesh key={`n-${i}`} position={[x, 0.8, 0]} rotation={[0, 0, Math.PI / 4]}>
-              <boxGeometry args={[0.08, 0.45, 0.08]} />
-              <meshStandardMaterial color="#ec4899" />
-            </mesh>
-          ))}
-          {/* Moving South */}
-          {[-0.7, 0, 0.7].map((x, i) => (
-            <mesh key={`s-${i}`} position={[x, -0.8, 0]} rotation={[0, 0, -Math.PI / 4]}>
-              <boxGeometry args={[0.08, 0.45, 0.08]} />
-              <meshStandardMaterial color="#ec4899" />
-            </mesh>
-          ))}
-        </group>
-      )}
-
-      {stageIndex >= 4 && (
-        // Telophase / Cytokinesis: Cleavage furrow pinching into two cells!
-        <group>
-          {/* Cell 1 (Upper) */}
-          <group position={[0, 1.0, 0]}>
-            <mesh>
-              <sphereGeometry args={[1.3, 32, 32]} />
-              <meshPhysicalMaterial color="#8b5cf6" transparent opacity={0.35} />
-            </mesh>
-            <mesh>
-              <sphereGeometry args={[0.5, 16, 16]} />
-              <meshStandardMaterial color="#4f46e5" />
-            </mesh>
-          </group>
-
-          {/* Cell 2 (Lower) */}
-          <group position={[0, -1.0, 0]}>
-            <mesh>
-              <sphereGeometry args={[1.3, 32, 32]} />
-              <meshPhysicalMaterial color="#8b5cf6" transparent opacity={0.35} />
-            </mesh>
-            <mesh>
-              <sphereGeometry args={[0.5, 16, 16]} />
-              <meshStandardMaterial color="#4f46e5" />
-            </mesh>
-          </group>
         </group>
       )}
     </group>

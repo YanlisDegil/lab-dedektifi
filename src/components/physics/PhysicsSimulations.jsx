@@ -1,26 +1,19 @@
 import React, { useRef, useMemo, useState } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Float, Line, Sphere, Html, Trail } from '@react-three/drei'
+import { Text, Line } from '@react-three/drei'
 import * as THREE from 'three'
-import {
-  calcPendulum,
-  calcProjectile,
-  projectilePos,
-  waveY,
-} from '../../data/physics'
 
 // ============================================================
 // 1. PENDULUM SCENE
 // ============================================================
 export function PendulumScene({
-  length = 2.0, // meters
-  mass = 1.0, // kg
-  gravity = 9.81, // m/s²
-  angle0Deg = 30, // degrees
+  length = 2.0,
+  mass = 1.0,
+  gravity = 9.81,
+  angle0Deg = 30,
   isPlaying = true,
 }) {
   const pivotRef = useRef()
-  const bobRef = useRef()
   const [time, setTime] = useState(0)
 
   const omega = Math.sqrt(gravity / length)
@@ -35,94 +28,38 @@ export function PendulumScene({
     }
   })
 
-  // Current instantaneous values
-  const currentAngle = angle0Rad * Math.cos(omega * time)
-  const currentThetaDeg = (currentAngle * 180) / Math.PI
-  const hMax = length * (1 - Math.cos(angle0Rad))
-  const hCurrent = length * (1 - Math.cos(currentAngle))
-  const vMax = Math.sqrt(2 * gravity * hMax)
-  const vCurrent = Math.sqrt(Math.max(0, 2 * gravity * (hMax - hCurrent)))
-  const pe = mass * gravity * hCurrent
-  const ke = 0.5 * mass * vCurrent * vCurrent
-  const totalE = pe + ke
-
   return (
-    <group position={[0, 1.5, 0]}>
-      {/* Pivot base on ceiling */}
+    <group position={[0, 1.6, 0]}>
+      {/* Ceiling Pivot Mount */}
       <mesh position={[0, 0, 0]}>
-        <cylinderGeometry args={[0.2, 0.2, 0.1, 24]} rotation={[0, 0, Math.PI / 2]} />
-        <meshStandardMaterial color="#475569" metalness={0.8} />
+        <cylinderGeometry args={[0.22, 0.22, 0.12, 24]} rotation={[0, 0, Math.PI / 2]} />
+        <meshStandardMaterial color="#64748b" metalness={0.8} />
       </mesh>
-      <mesh position={[0, 0.1, 0]}>
-        <boxGeometry args={[1.5, 0.08, 0.6]} />
+      <mesh position={[0, 0.12, 0]}>
+        <boxGeometry args={[1.8, 0.1, 0.8]} />
         <meshStandardMaterial color="#334155" metalness={0.7} />
       </mesh>
 
       {/* Rotating Pendulum Assembly */}
       <group ref={pivotRef}>
-        {/* Rod / String */}
+        {/* String/Rod */}
         <mesh position={[0, -length / 2, 0]}>
-          <cylinderGeometry args={[0.02, 0.02, length, 16]} />
-          <meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.1} />
+          <cylinderGeometry args={[0.025, 0.025, length, 16]} />
+          <meshStandardMaterial color="#e2e8f0" metalness={0.9} roughness={0.1} />
         </mesh>
 
-        {/* Pendulum Bob */}
-        <mesh ref={bobRef} position={[0, -length, 0]}>
-          <sphereGeometry args={[0.15 * Math.cbrt(mass), 32, 32]} />
+        {/* Shiny Pendulum Bob */}
+        <mesh position={[0, -length, 0]}>
+          <sphereGeometry args={[0.18 * Math.cbrt(mass), 32, 32]} />
           <meshStandardMaterial
-            color="#3b82f6"
-            emissive="#1d4ed8"
-            emissiveIntensity={0.5}
-            metalness={0.8}
-            roughness={0.2}
+            color="#38bdf8"
+            emissive="#0284c7"
+            emissiveIntensity={0.6}
+            metalness={0.85}
+            roughness={0.15}
           />
         </mesh>
       </group>
-
-      {/* Energy Monitor In-Scene Overlay */}
-      <Html position={[2.2, -0.5, 0]} distanceFactor={6}>
-        <div className="bg-dark-900/90 border border-dark-700 p-3 rounded-xl w-44 text-xs select-none shadow-xl">
-          <div className="text-[10px] uppercase font-bold text-physics mb-2">
-            Enerji Dönüşümü
-          </div>
-          <div className="space-y-1.5">
-            <div>
-              <div className="flex justify-between text-[10px] text-dark-300">
-                <span>Potansiyel (PE)</span>
-                <span className="font-mono text-amber-400">{pe.toFixed(2)} J</span>
-              </div>
-              <div className="h-1.5 bg-dark-800 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-amber-400 transition-all duration-75"
-                  style={{ width: `${totalE > 0 ? (pe / totalE) * 100 : 0}%` }}
-                />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between text-[10px] text-dark-300">
-                <span>Kinetik (KE)</span>
-                <span className="font-mono text-emerald-400">{ke.toFixed(2)} J</span>
-              </div>
-              <div className="h-1.5 bg-dark-800 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-emerald-400 transition-all duration-75"
-                  style={{ width: `${totalE > 0 ? (ke / totalE) * 100 : 0}%` }}
-                />
-              </div>
-            </div>
-
-            <div className="pt-2 border-t border-dark-800 text-[10px] flex justify-between text-dark-400">
-              <span>Hız:</span>
-              <span className="text-white font-mono">{vCurrent.toFixed(2)} m/s</span>
-            </div>
-            <div className="text-[10px] flex justify-between text-dark-400">
-              <span>Açı:</span>
-              <span className="text-white font-mono">{currentThetaDeg.toFixed(1)}°</span>
-            </div>
-          </div>
-        </div>
-      </Html>
     </group>
   )
 }
@@ -133,14 +70,12 @@ export function PendulumScene({
 export function WaveScene({
   amplitude = 0.8,
   frequency = 1.0,
-  speed = 2.0,
-  mode = 'single', // 'single', 'interference', 'standing'
+  mode = 'single',
 }) {
   const lineRef = useRef()
   const pointCount = 100
-  const width = 8
+  const width = 9
 
-  // Calculate wave vertices on each frame
   useFrame((state) => {
     if (!lineRef.current) return
     const t = state.clock.elapsedTime
@@ -151,16 +86,14 @@ export function WaveScene({
       let y = 0
 
       if (mode === 'single') {
-        const k = (2 * Math.PI) / 3 // wavelength = 3m
+        const k = (2 * Math.PI) / 3
         y = amplitude * Math.sin(2 * Math.PI * frequency * t - k * x)
       } else if (mode === 'interference') {
-        // Two interfering waves
         const k = (2 * Math.PI) / 3
-        const y1 = amplitude * Math.sin(2 * Math.PI * frequency * t - k * x)
-        const y2 = amplitude * Math.sin(2 * Math.PI * frequency * t + k * x)
-        y = y1 + y2
+        y =
+          amplitude * Math.sin(2 * Math.PI * frequency * t - k * x) +
+          amplitude * Math.sin(2 * Math.PI * frequency * t + k * x)
       } else if (mode === 'standing') {
-        // Standing wave: 2A sin(kx) cos(wt)
         const k = (Math.PI * 2) / 4
         y = 2 * amplitude * Math.sin(k * (x + width / 2)) * Math.cos(2 * Math.PI * frequency * t)
       }
@@ -172,7 +105,6 @@ export function WaveScene({
     lineRef.current.geometry.attributes.position.needsUpdate = true
   })
 
-  // Initial line points
   const initialPositions = useMemo(() => {
     const pos = new Float32Array(pointCount * 3)
     for (let i = 0; i < pointCount; i++) {
@@ -195,7 +127,7 @@ export function WaveScene({
             itemSize={3}
           />
         </bufferGeometry>
-        <lineBasicMaterial color="#38bdf8" linewidth={3} />
+        <lineBasicMaterial color="#38bdf8" linewidth={3.5} />
       </line>
 
       {/* Axis Guide */}
@@ -208,14 +140,14 @@ export function WaveScene({
             itemSize={3}
           />
         </bufferGeometry>
-        <lineBasicMaterial color="#334155" transparent opacity={0.5} />
+        <lineBasicMaterial color="#64748b" transparent opacity={0.6} />
       </line>
 
-      {/* Wave Beads on the wave for better 3D depth */}
-      {Array.from({ length: 16 }).map((_, i) => (
+      {/* Wave Beads */}
+      {Array.from({ length: 18 }).map((_, i) => (
         <WaveBead
           key={i}
-          x={(i / 15) * width - width / 2}
+          x={(i / 17) * width - width / 2}
           amplitude={amplitude}
           frequency={frequency}
           mode={mode}
@@ -237,7 +169,7 @@ function WaveBead({ x, amplitude, frequency, mode }) {
       y = amplitude * Math.sin(2 * Math.PI * frequency * t - k * x)
     } else if (mode === 'standing') {
       const k = (Math.PI * 2) / 4
-      y = 2 * amplitude * Math.sin(k * (x + 4)) * Math.cos(2 * Math.PI * frequency * t)
+      y = 2 * amplitude * Math.sin(k * (x + 4.5)) * Math.cos(2 * Math.PI * frequency * t)
     } else {
       const k = (2 * Math.PI) / 3
       y =
@@ -249,33 +181,31 @@ function WaveBead({ x, amplitude, frequency, mode }) {
 
   return (
     <mesh ref={meshRef}>
-      <sphereGeometry args={[0.09, 16, 16]} />
-      <meshStandardMaterial color="#60a5fa" emissive="#2563eb" emissiveIntensity={0.8} />
+      <sphereGeometry args={[0.09, 14, 14]} />
+      <meshStandardMaterial color="#60a5fa" emissive="#0284c7" emissiveIntensity={1} />
     </mesh>
   )
 }
 
 // ============================================================
-// 3. MAGNETIC FIELD SCENE
+// 3. MAGNETIC FIELD SCENE (NO SEE-THROUGH TEXT - REAL 3D LABELS)
 // ============================================================
 export function MagneticFieldScene({
   showFieldLines = true,
-  solenoidCurrent = 2.0, // Amperes
   magnetPosition = [0, 0, 0],
 }) {
   const lines = useMemo(() => {
-    // Generate dipole field lines around a bar magnet
     const curves = []
-    const lineCount = 14
+    const lineCount = 16
     for (let i = 0; i < lineCount; i++) {
       const angle = (i / lineCount) * Math.PI * 2
-      const radius = 1.0 + (i % 3) * 0.5
+      const radius = 1.1 + (i % 3) * 0.6
       const points = []
       for (let step = 0; step <= 32; step++) {
         const theta = (step / 32) * Math.PI
         const r = radius * Math.sin(theta)
         const x = Math.cos(angle) * r
-        const y = 1.6 * Math.cos(theta)
+        const y = 1.8 * Math.cos(theta)
         const z = Math.sin(angle) * r
         points.push(new THREE.Vector3(x, y, z))
       }
@@ -286,48 +216,86 @@ export function MagneticFieldScene({
 
   return (
     <group position={magnetPosition}>
-      {/* North Pole (Red) */}
-      <mesh position={[0, 0.5, 0]}>
-        <boxGeometry args={[0.5, 1.0, 0.5]} />
-        <meshStandardMaterial color="#ef4444" roughness={0.3} metalness={0.4} />
+      {/* North Pole Half (Red Metallic) */}
+      <mesh position={[0, 0.6, 0]}>
+        <boxGeometry args={[0.6, 1.2, 0.6]} />
+        <meshStandardMaterial color="#ef4444" roughness={0.2} metalness={0.6} />
       </mesh>
-      <Html position={[0, 0.5, 0.26]} center distanceFactor={6}>
-        <div className="text-white font-black text-lg select-none">N</div>
-      </Html>
+      {/* North 'N' on Front Face */}
+      <Text
+        position={[0, 0.6, 0.31]}
+        fontSize={0.32}
+        color="#ffffff"
+        anchorX="center"
+        anchorY="middle"
+      >
+        N
+      </Text>
+      {/* North 'N' on Back Face */}
+      <Text
+        position={[0, 0.6, -0.31]}
+        rotation={[0, Math.PI, 0]}
+        fontSize={0.32}
+        color="#ffffff"
+        anchorX="center"
+        anchorY="middle"
+      >
+        N
+      </Text>
 
-      {/* South Pole (Blue) */}
-      <mesh position={[0, -0.5, 0]}>
-        <boxGeometry args={[0.5, 1.0, 0.5]} />
-        <meshStandardMaterial color="#3b82f6" roughness={0.3} metalness={0.4} />
+      {/* South Pole Half (Blue Metallic) */}
+      <mesh position={[0, -0.6, 0]}>
+        <boxGeometry args={[0.6, 1.2, 0.6]} />
+        <meshStandardMaterial color="#2563eb" roughness={0.2} metalness={0.6} />
       </mesh>
-      <Html position={[0, -0.5, 0.26]} center distanceFactor={6}>
-        <div className="text-white font-black text-lg select-none">S</div>
-      </Html>
+      {/* South 'S' on Front Face */}
+      <Text
+        position={[0, -0.6, 0.31]}
+        fontSize={0.32}
+        color="#ffffff"
+        anchorX="center"
+        anchorY="middle"
+      >
+        S
+      </Text>
+      {/* South 'S' on Back Face */}
+      <Text
+        position={[0, -0.6, -0.31]}
+        rotation={[0, Math.PI, 0]}
+        fontSize={0.32}
+        color="#ffffff"
+        anchorX="center"
+        anchorY="middle"
+      >
+        S
+      </Text>
 
-      {/* Animated Magnetic Field Lines */}
+      {/* Field Lines */}
       {showFieldLines && (
         <group>
           {lines.map((curve, idx) => (
             <mesh key={idx}>
-              <tubeGeometry args={[curve, 40, 0.015, 8, false]} />
+              <tubeGeometry args={[curve, 40, 0.016, 8, false]} />
               <meshStandardMaterial
-                color="#60a5fa"
+                color="#38bdf8"
                 transparent
-                opacity={0.35}
-                emissive="#38bdf8"
-                emissiveIntensity={0.2}
+                opacity={0.4}
+                emissive="#0284c7"
+                emissiveIntensity={0.3}
               />
             </mesh>
           ))}
         </group>
       )}
 
-      {/* Compass Needles in orbit */}
+      {/* Compass Needles around the magnet */}
       {[
-        [-1.8, 0, 0],
-        [1.8, 0, 0],
-        [0, 1.8, 0],
-        [0, -1.8, 0],
+        [-2.0, 0, 0],
+        [2.0, 0, 0],
+        [0, 2.2, 0],
+        [0, -2.2, 0],
+        [-1.6, 1.4, 0],
+        [1.6, 1.4, 0],
       ].map((pos, idx) => (
         <CompassWidget key={idx} position={pos} />
       ))}
@@ -338,126 +306,164 @@ export function MagneticFieldScene({
 function CompassWidget({ position }) {
   return (
     <group position={position}>
-      {/* Compass housing */}
+      {/* Brass Case */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.3, 0.3, 0.05, 24]} />
-        <meshStandardMaterial color="#0f172a" metalness={0.8} />
+        <cylinderGeometry args={[0.34, 0.34, 0.08, 24]} />
+        <meshStandardMaterial color="#d97706" metalness={0.9} roughness={0.2} />
+      </mesh>
+      {/* Dial Face */}
+      <mesh position={[0, 0, 0.045]}>
+        <circleGeometry args={[0.3, 24]} />
+        <meshBasicMaterial color="#f8fafc" />
       </mesh>
       {/* Red North needle */}
-      <mesh position={[0, 0.1, 0.03]} rotation={[0, 0, 0]}>
-        <coneGeometry args={[0.06, 0.2, 12]} />
+      <mesh position={[0, 0.11, 0.05]}>
+        <coneGeometry args={[0.065, 0.22, 12]} />
         <meshStandardMaterial color="#ef4444" />
       </mesh>
       {/* Blue South needle */}
-      <mesh position={[0, -0.1, 0.03]} rotation={[0, 0, Math.PI]}>
-        <coneGeometry args={[0.06, 0.2, 12]} />
-        <meshStandardMaterial color="#3b82f6" />
+      <mesh position={[0, -0.11, 0.05]} rotation={[0, 0, Math.PI]}>
+        <coneGeometry args={[0.065, 0.22, 12]} />
+        <meshStandardMaterial color="#2563eb" />
+      </mesh>
+      {/* Center Pivot Pin */}
+      <mesh position={[0, 0, 0.06]}>
+        <sphereGeometry args={[0.03, 12, 12]} />
+        <meshStandardMaterial color="#0f172a" />
       </mesh>
     </group>
   )
 }
 
 // ============================================================
-// 4. PROJECTILE MOTION SCENE
+// 4. PROJECTILE MOTION SCENE (EXPANDED TO 200 METERS WITH CLEAR METERS)
 // ============================================================
 export function ProjectileScene({
-  v0 = 25, // m/s
-  angleDeg = 45, // degrees
-  gravity = 9.81, // m/s²
+  v0 = 25,
+  angleDeg = 45,
+  gravity = 9.81,
   isFired = false,
-  flightTimeProgress = 0, // 0 to 1
+  flightTimeProgress = 0,
 }) {
   const angleRad = (angleDeg * Math.PI) / 180
   const tTotal = (2 * v0 * Math.sin(angleRad)) / gravity
   const xMax = (v0 * v0 * Math.sin(2 * angleRad)) / gravity
   const yMax = (v0 * Math.sin(angleRad)) ** 2 / (2 * gravity)
 
-  // Current projectile coordinates
+  // Scene scaling: fit up to 200 meters into view
+  const scale = 0.08
+  const startX = -6
+
   const currentTime = flightTimeProgress * tTotal
   const currentX = v0 * Math.cos(angleRad) * currentTime
   const currentY = Math.max(0, v0 * Math.sin(angleRad) * currentTime - 0.5 * gravity * currentTime * currentTime)
 
-  // Trajectory curve points (scaled to 3D scene size)
-  const scale = 0.12 // scale meters to 3D scene units
   const trajectoryPoints = useMemo(() => {
     const pts = []
-    const steps = 50
+    const steps = 60
     for (let i = 0; i <= steps; i++) {
       const t = (i / steps) * tTotal
-      const px = v0 * Math.cos(angleRad) * t * scale - 4
+      const px = v0 * Math.cos(angleRad) * t * scale + startX
       const py = (v0 * Math.sin(angleRad) * t - 0.5 * gravity * t * t) * scale - 1.2
       pts.push(new THREE.Vector3(px, py, 0))
     }
     return pts
-  }, [v0, angleRad, gravity, tTotal, scale])
+  }, [v0, angleRad, gravity, tTotal, scale, startX])
+
+  // Distance markers in meters (0m to 200m)
+  const distanceMarkers = [0, 20, 40, 60, 80, 100, 150, 200]
 
   return (
     <group position={[0, 0, 0]}>
-      {/* Ground Plane with Distance Grid */}
-      <mesh position={[0, -1.25, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[14, 6]} />
-        <meshStandardMaterial color="#1e293b" roughness={0.8} />
+      {/* Light Green Grassy Landing Ground */}
+      <mesh position={[4, -1.25, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[22, 6]} />
+        <meshStandardMaterial color="#166534" roughness={0.7} />
       </mesh>
-      {/* Distance meter markers */}
-      {[-4, -2, 0, 2, 4].map((x, i) => (
-        <group key={i} position={[x, -1.22, 0]}>
-          <mesh>
-            <boxGeometry args={[0.04, 0.02, 1.0]} />
-            <meshBasicMaterial color="#475569" />
-          </mesh>
-        </group>
-      ))}
 
-      {/* Cannon / Launcher */}
-      <group position={[-4, -1.2, 0]}>
-        {/* Base stand */}
+      {/* Runway White Distance Lines & 3D Meter Labels */}
+      {distanceMarkers.map((meter) => {
+        const xPos = meter * scale + startX
+        return (
+          <group key={meter} position={[xPos, -1.23, 0]}>
+            {/* White ground stripe */}
+            <mesh>
+              <boxGeometry args={[0.06, 0.02, 1.4]} />
+              <meshBasicMaterial color="#ffffff" />
+            </mesh>
+            {/* 3D Meter Text (Clearly visible from above and side) */}
+            <Text
+              position={[0, 0.02, 0.9]}
+              rotation={[-Math.PI / 2, 0, 0]}
+              fontSize={0.22}
+              color="#ffffff"
+              anchorX="center"
+              anchorY="middle"
+            >
+              {`${meter}m`}
+            </Text>
+          </group>
+        )
+      })}
+
+      {/* Cannon / Firing Battery */}
+      <group position={[startX, -1.2, 0]}>
         <mesh position={[0, 0.15, 0]}>
           <cylinderGeometry args={[0.35, 0.45, 0.3, 16]} />
-          <meshStandardMaterial color="#334155" metalness={0.8} />
+          <meshStandardMaterial color="#475569" metalness={0.8} />
         </mesh>
-        {/* Barrel tilted at angle */}
         <group rotation={[0, 0, angleRad]}>
-          <mesh position={[0.4, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.14, 0.18, 0.9, 16]} />
-            <meshStandardMaterial color="#0f172a" metalness={0.9} roughness={0.2} />
+          <mesh position={[0.45, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
+            <cylinderGeometry args={[0.15, 0.2, 0.95, 16]} />
+            <meshStandardMaterial color="#0284c7" metalness={0.8} roughness={0.2} />
           </mesh>
         </group>
       </group>
 
-      {/* Trajectory Guide Arc */}
+      {/* Parabolic Trajectory Guide Line */}
       <Line
         points={trajectoryPoints}
         color="#38bdf8"
-        lineWidth={2}
+        lineWidth={3}
         dashed
-        dashScale={50}
+        dashScale={40}
         dashSize={0.2}
         gapSize={0.1}
       />
 
-      {/* Projectile Ball */}
+      {/* Glowing Bright Gold/Orange Cannonball with High Visibility */}
       {isFired && (
-        <mesh position={[currentX * scale - 4, currentY * scale - 1.2, 0]}>
-          <sphereGeometry args={[0.14, 24, 24]} />
-          <meshStandardMaterial
-            color="#f59e0b"
-            emissive="#d97706"
-            emissiveIntensity={1.2}
-          />
-        </mesh>
+        <group position={[currentX * scale + startX, currentY * scale - 1.2, 0]}>
+          <mesh>
+            <sphereGeometry args={[0.18, 24, 24]} />
+            <meshStandardMaterial
+              color="#f59e0b"
+              emissive="#ea580c"
+              emissiveIntensity={2.5}
+              roughness={0.1}
+            />
+          </mesh>
+          <pointLight color="#f59e0b" intensity={3} distance={3} />
+        </group>
       )}
 
-      {/* Peak height indicator */}
-      <group position={[(xMax / 2) * scale - 4, yMax * scale - 1.2, 0]}>
+      {/* Maximum Height Indicator */}
+      <group position={[(xMax / 2) * scale + startX, yMax * scale - 1.2, 0]}>
         <mesh>
-          <sphereGeometry args={[0.05, 12, 12]} />
+          <sphereGeometry args={[0.07, 12, 12]} />
           <meshBasicMaterial color="#ef4444" />
         </mesh>
-        <Html position={[0, 0.3, 0]} center distanceFactor={6}>
-          <div className="bg-dark-900/90 border border-dark-700 text-[10px] text-amber-400 font-mono px-1.5 py-0.5 rounded whitespace-nowrap">
-            h_max: {yMax.toFixed(1)} m
-          </div>
-        </Html>
+        <Text
+          position={[0, 0.35, 0]}
+          fontSize={0.18}
+          color="#fef08a"
+          anchorX="center"
+          anchorY="middle"
+          outlineWidth={0.02}
+          outlineColor="#0f172a"
+        >
+          {`h_max: ${yMax.toFixed(1)} m`}
+        </Text>
       </group>
     </group>
   )
