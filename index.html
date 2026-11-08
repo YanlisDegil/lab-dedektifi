@@ -1,0 +1,402 @@
+import React, { useRef, useMemo, useState } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
+import { Text, OrbitControls } from '@react-three/drei'
+import * as THREE from 'three'
+
+// ─── ÖRNEK ELEMENTLER VE ELEKTRON KATMAN FONKSİYONU ───
+const elements = [
+  { z: 1, symbol: 'H', name: 'Hidrojen', category: 'nonmetal', shells: [1], color: '#10b981' },
+  { z: 2, symbol: 'He', name: 'Helyum', category: 'noble', shells: [2], color: '#38bdf8' },
+  { z: 3, symbol: 'Li', name: 'Lityum', category: 'alkali', shells: [2, 1], color: '#f43f5e' },
+  { z: 4, symbol: 'Be', name: 'Berilyum', category: 'alkaline', shells: [2, 2], color: '#fbbf24' },
+  { z: 5, symbol: 'B', name: 'Bor', category: 'metalloid', shells: [2, 3], color: '#a855f7' },
+  { z: 6, symbol: 'C', name: 'Karbon', category: 'nonmetal', shells: [2, 4], color: '#ffffff' },
+  { z: 7, symbol: 'N', name: 'Azot', category: 'nonmetal', shells: [2, 5], color: '#3b82f6' },
+  { z: 8, symbol: 'O', name: 'Oksijen', category: 'nonmetal', shells: [2, 6], color: '#ef4444' },
+]
+
+function getElectronShells(z) {
+  const el = elements.find((item) => item.z === z)
+  return el ? el.shells : [1]
+}
+
+// ─── 1. AHŞAP LABORATUVAR MASASI ───
+export function LabBench({ position = [0, -1.8, 0], size = [14, 0.45, 7] }) {
+  return (
+    <group position={position}>
+      <mesh receiveShadow position={[0, 0, 0]}>
+        <boxGeometry args={size} />
+        <meshStandardMaterial color="#5c2c16" roughness={0.35} metalness={0.08} />
+      </mesh>
+      {[-2.5, -1.25, 0, 1.25, 2.5].map((z, idx) => (
+        <mesh key={idx} position={[0, size[1] / 2 + 0.002, z]}>
+          <planeGeometry args={[size[0] * 0.98, 0.015]} />
+          <meshBasicMaterial color="#3d1b0c" opacity={0.6} transparent />
+        </mesh>
+      ))}
+      <mesh position={[0, size[1] / 2 + 0.01, size[2] / 2]}>
+        <boxGeometry args={[size[0], 0.04, 0.06]} />
+        <meshStandardMaterial color="#78350f" roughness={0.4} />
+      </mesh>
+      {[
+        [-size[0] / 2 + 0.5, -2, -size[2] / 2 + 0.5],
+        [size[0] / 2 - 0.5, -2, -size[2] / 2 + 0.5],
+        [-size[0] / 2 + 0.5, -2, size[2] / 2 - 0.5],
+        [size[0] / 2 - 0.5, -2, size[2] / 2 - 0.5],
+      ].map((pos, idx) => (
+        <group key={idx} position={pos}>
+          <mesh>
+            <cylinderGeometry args={[0.1, 0.12, 4, 16]} />
+            <meshStandardMaterial color="#1e293b" metalness={0.8} roughness={0.3} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  )
+}
+
+// ─── 2. BEHERGLAS (SIVI VE KABARCIKLAR) ───
+export function Beaker({
+  position = [0, 0, 0],
+  radius = 0.65,
+  height = 1.5,
+  liquidLevel = 0.65,
+  liquidColor = '#10b981',
+  showBubbles = false,
+}) {
+  const bubblesRef = useRef()
+  const bubbleCount = 20
+
+  const bubbleData = useMemo(() => {
+    return Array.from({ length: bubbleCount }, () => ({
+      x: (Math.random() - 0.5) * (radius * 1.3),
+      y: Math.random() * (height * Math.max(0.2, liquidLevel)),
+      z: (Math.random() - 0.5) * (radius * 1.3),
+      speed: 0.4 + Math.random() * 0.5,
+      size: 0.02 + Math.random() * 0.03,
+    }))
+  }, [bubbleCount, radius, height, liquidLevel])
+
+  useFrame((_, delta) => {
+    if (!showBubbles || !bubblesRef.current) return
+    bubblesRef.current.children.forEach((child, i) => {
+      const b = bubbleData[i]
+      child.position.y += b.speed * delta
+      const topY = -height / 2 + height * liquidLevel - 0.05
+      if (child.position.y > topY) child.position.y = -height / 2 + 0.08
+    })
+  })
+
+  const liquidActualHeight = Math.max(0.08, height * liquidLevel)
+
+  return (
+    <group position={position}>
+      {liquidLevel > 0.02 && (
+        <group position={[0, -height / 2 + 0.04 + liquidActualHeight / 2, 0]}>
+          <mesh renderOrder={1}>
+            <cylinderGeometry args={[radius * 0.94, radius * 0.94, liquidActualHeight, 36]} />
+            <meshStandardMaterial color={liquidColor} roughness={0.15} metalness={0.1} />
+          </mesh>
+          <mesh position={[0, liquidActualHeight / 2, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={2}>
+            <circleGeometry args={[radius * 0.94, 36]} />
+            <meshStandardMaterial color={liquidColor} roughness={0.05} metalness={0.25} />
+          </mesh>
+        </group>
+      )}
+
+      <mesh position={[0, 0, 0]} renderOrder={5}>
+        <cylinderGeometry args={[radius, radius, height, 36, 1, true]} />
+        <meshStandardMaterial color="#f8fafc" transparent opacity={0.32} roughness={0.06} depthWrite={false} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh position={[0, -height / 2 + 0.02, 0]} renderOrder={5}>
+        <cylinderGeometry args={[radius, radius, 0.05, 36]} />
+        <meshStandardMaterial color="#e2e8f0" transparent opacity={0.5} depthWrite={false} />
+      </mesh>
+      <mesh position={[0, height / 2, 0]} rotation={[Math.PI / 2, 0, 0]} renderOrder={6}>
+        <torusGeometry args={[radius, 0.035, 16, 36]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.1} />
+      </mesh>
+
+      {[0.25, 0.5, 0.75].map((lvl, i) => (
+        <group key={i} position={[radius * 0.98, -height / 2 + height * lvl, 0]} renderOrder={7}>
+          <mesh rotation={[0, 0, Math.PI / 2]}>
+            <boxGeometry args={[0.015, 0.16, 0.01]} />
+            <meshBasicMaterial color="#ffffff" />
+          </mesh>
+          <Text position={[0.02, 0, 0.08]} fontSize={0.09} color="#ffffff" anchorX="left" outlineWidth={0.01} outlineColor="#000">
+            {`${Math.round(lvl * 500)} mL`}
+          </Text>
+        </group>
+      ))}
+    </group>
+  )
+}
+
+// ─── 3. DİJİTAL pH METRE ───
+export function PHMeterDevice({ position = [1.5, 0, 0], pH = 7.0 }) {
+  return (
+    <group position={position}>
+      <mesh position={[0, 0.25, 0]} rotation={[-0.3, 0, 0]}>
+        <boxGeometry args={[1.0, 1.2, 0.35]} />
+        <meshStandardMaterial color="#1e293b" roughness={0.3} metalness={0.4} />
+      </mesh>
+      <mesh position={[0, 0.45, 0.2]} rotation={[-0.3, 0, 0]}>
+        <planeGeometry args={[0.76, 0.46]} />
+        <meshBasicMaterial color="#0f172a" />
+      </mesh>
+      <group position={[0, 0.45, 0.21]} rotation={[-0.3, 0, 0]}>
+        <Text position={[0, 0.12, 0]} fontSize={0.06} color="#38bdf8" anchorX="center">LAB pH METER</Text>
+        <Text position={[0, -0.05, 0]} fontSize={0.2} color="#10b981" anchorX="center">{pH.toFixed(2)}</Text>
+      </group>
+      <group position={[-1.7, -0.2, 0]}>
+        <mesh position={[0, 0.4, 0]}>
+          <cylinderGeometry args={[0.035, 0.035, 1.2, 16]} />
+          <meshStandardMaterial color="#94a3b8" metalness={0.9} />
+        </mesh>
+        <mesh position={[0, -0.25, 0]}>
+          <sphereGeometry args={[0.075, 16, 16]} />
+          <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={0.8} transparent opacity={0.8} />
+        </mesh>
+      </group>
+    </group>
+  )
+}
+
+// ─── 4. BOHR ATOM MODELİ ───
+export function BohrAtom({ symbol = 'H', shells = [1] }) {
+  const groupRef = useRef()
+  useFrame((state) => {
+    if (groupRef.current) groupRef.current.rotation.y = state.clock.elapsedTime * 0.3
+  })
+
+  return (
+    <group ref={groupRef}>
+      <mesh>
+        <sphereGeometry args={[0.45, 32, 32]} />
+        <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={1.5} roughness={0.2} metalness={0.7} />
+      </mesh>
+      <Text position={[0, 0, 0.48]} fontSize={0.26} color="#ffffff" anchorX="center">{symbol}</Text>
+
+      {shells.map((count, shellIdx) => {
+        const radius = 1.0 + shellIdx * 0.75
+        return (
+          <group key={shellIdx} rotation={[(shellIdx * Math.PI) / 3.5, 0, (shellIdx * Math.PI) / 5]}>
+            <mesh rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[radius, 0.018, 16, 64]} />
+              <meshBasicMaterial color="#38bdf8" transparent opacity={0.45} />
+            </mesh>
+            {Array.from({ length: count }).map((_, eIdx) => (
+              <ElectronParticle key={eIdx} radius={radius} initialAngle={(eIdx / count) * Math.PI * 2} speed={2.2 - shellIdx * 0.3} />
+            ))}
+          </group>
+        )
+      })}
+    </group>
+  )
+}
+
+function ElectronParticle({ radius, initialAngle, speed }) {
+  const ref = useRef()
+  useFrame((state) => {
+    const t = state.clock.elapsedTime * speed + initialAngle
+    if (ref.current) {
+      ref.current.position.x = Math.cos(t) * radius
+      ref.current.position.z = Math.sin(t) * radius
+    }
+  })
+  return (
+    <mesh ref={ref}>
+      <sphereGeometry args={[0.085, 16, 16]} />
+      <meshStandardMaterial color="#38bdf8" emissive="#38bdf8" emissiveIntensity={3.0} />
+    </mesh>
+  )
+}
+
+// ─── 5. DÜNYA MANYETİK ALANI & AURORA ───
+export function EarthMagnetismScene({ showFieldLines = true }) {
+  const earthRef = useRef()
+  useFrame((state) => {
+    if (earthRef.current) earthRef.current.rotation.y = state.clock.elapsedTime * 0.15
+  })
+
+  const earthDipoleLines = useMemo(() => {
+    const curves = []
+    for (let i = 0; i < 14; i++) {
+      const angle = (i / 14) * Math.PI * 2
+      const radius = 2.4 + (i % 3) * 0.9
+      const points = []
+      for (let step = 0; step <= 32; step++) {
+        const theta = (step / 32) * Math.PI
+        const r = radius * Math.sin(theta)
+        points.push(new THREE.Vector3(Math.cos(angle) * r, 3.2 * Math.cos(theta), Math.sin(angle) * r))
+      }
+      curves.push(new THREE.CatmullRomCurve3(points))
+    }
+    return curves
+  }, [])
+
+  return (
+    <group position={[0, 0, 0]}>
+      <group rotation={[0, 0, 0.41]}>
+        <group ref={earthRef}>
+          <mesh>
+            <sphereGeometry args={[1.5, 48, 48]} />
+            <meshStandardMaterial color="#0284c7" roughness={0.2} metalness={0.1} />
+          </mesh>
+        </group>
+        <mesh position={[0, 1.45, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.45, 0.06, 12, 36]} />
+          <meshStandardMaterial color="#22c55e" emissive="#10b981" emissiveIntensity={2.5} transparent opacity={0.8} />
+        </mesh>
+        <mesh position={[0, -1.45, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.45, 0.06, 12, 36]} />
+          <meshStandardMaterial color="#a855f7" emissive="#8b5cf6" emissiveIntensity={2.5} transparent opacity={0.8} />
+        </mesh>
+      </group>
+      {showFieldLines && (
+        <group rotation={[0, 0, 0.2]}>
+          {earthDipoleLines.map((curve, idx) => (
+            <mesh key={idx}>
+              <tubeGeometry args={[curve, 48, 0.02, 8, false]} />
+              <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={0.8} transparent opacity={0.45} />
+            </mesh>
+          ))}
+        </group>
+      )}
+    </group>
+  )
+}
+
+// ─── 6. ÇEKİRDEK İÇ MİMARİSİ ───
+export function NucleusStructureDetail() {
+  const groupRef = useRef()
+  useFrame((state) => {
+    if (groupRef.current) groupRef.current.rotation.y = state.clock.elapsedTime * 0.12
+  })
+
+  const chromatinCurves = useMemo(() => {
+    const list = []
+    for (let i = 0; i < 8; i++) {
+      const angle = (i / 8) * Math.PI * 2
+      const pts = []
+      for (let s = 0; s <= 20; s++) {
+        const t = s / 20
+        const r = 0.5 + Math.sin(t * Math.PI) * 0.9
+        pts.push(new THREE.Vector3(Math.cos(angle + t * 2) * r, (t - 0.5) * 1.8, Math.sin(angle + t * 2) * r))
+      }
+      list.push(new THREE.CatmullRomCurve3(pts))
+    }
+    return list
+  }, [])
+
+  return (
+    <group ref={groupRef}>
+      <mesh>
+        <sphereGeometry args={[2.0, 48, 48, 0, Math.PI * 1.5, 0, Math.PI]} />
+        <meshStandardMaterial color="#4338ca" emissive="#312e81" emissiveIntensity={0.5} roughness={0.35} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh position={[0, 0, 0]}>
+        <sphereGeometry args={[0.75, 32, 32]} />
+        <meshStandardMaterial color="#8b5cf6" emissive="#6d28d9" emissiveIntensity={1.2} />
+      </mesh>
+      {chromatinCurves.map((curve, idx) => (
+        <mesh key={idx}>
+          <tubeGeometry args={[curve, 40, 0.03, 8, false]} />
+          <meshStandardMaterial color={idx % 2 === 0 ? '#ec4899' : '#38bdf8'} emissive={idx % 2 === 0 ? '#db2777' : '#0284c7'} emissiveIntensity={0.6} />
+        </mesh>
+      ))}
+    </group>
+  )
+}
+
+// ─── ANA UYGULAMA BİLEŞENİ (APP) ───
+export default function App() {
+  const [activeScene, setActiveScene] = useState('lab') // 'lab' | 'atom' | 'earth' | 'nucleus'
+  const [selectedAtomicNumber, setSelectedAtomicNumber] = useState(1)
+
+  const selectedElement = useMemo(
+    () => elements.find((e) => e.z === selectedAtomicNumber) || elements[0],
+    [selectedAtomicNumber]
+  )
+
+  const shells = useMemo(() => getElectronShells(selectedElement.z), [selectedElement])
+
+  return (
+    <div className="w-screen h-screen bg-slate-950 flex flex-col font-sans select-none overflow-hidden text-white">
+      {/* Üst Menü / Sekmeler */}
+      <header className="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 z-10">
+        <h1 className="text-lg font-bold bg-gradient-to-r from-sky-400 to-emerald-400 bg-clip-text text-transparent">
+          3D Bilim Laboratuvarı & Simülasyon Ekranı
+        </h1>
+        <div className="flex gap-2">
+          {[
+            { id: 'lab', label: 'Kimya Lab' },
+            { id: 'atom', label: 'Bohr Atom' },
+            { id: 'earth', label: 'Dünya Manyetizma' },
+            { id: 'nucleus', label: 'Hücre Çekirdeği' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveScene(tab.id)}
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                activeScene === tab.id ? 'bg-sky-600 text-white shadow-lg shadow-sky-500/30' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </header>
+
+      {/* Ana İçerik ve 3D Sahne */}
+      <div className="flex-1 relative flex">
+        <Canvas camera={{ position: [0, 2, 7], fov: 50 }}>
+          <color attach="background" args={['#020617']} />
+          <ambientLight intensity={1.2} />
+          <directionalLight position={[5, 8, 5]} intensity={1.5} />
+          <pointLight position={[-5, -5, -5]} intensity={0.5} />
+          <OrbitControls enablePan enableZoom enableRotate />
+
+          {activeScene === 'lab' && (
+            <>
+              <LabBench />
+              <Beaker position={[-2, 0.4, 0]} liquidColor="#10b981" showBubbles={true} />
+              <PHMeterDevice position={[2, 0.3, 0]} pH={3.45} />
+            </>
+          )}
+
+          {activeScene === 'atom' && <BohrAtom symbol={selectedElement.symbol} shells={shells} />}
+
+          {activeScene === 'earth' && <EarthMagnetismScene />}
+
+          {activeScene === 'nucleus' && <NucleusStructureDetail />}
+        </Canvas>
+
+        {/* Eğer Atom sekmesindeysek periyodik tablo seçim menüsünü göster */}
+        {activeScene === 'atom' && (
+          <aside className="absolute right-6 top-6 w-80 bg-slate-900/90 backdrop-blur-md border border-slate-800 p-4 rounded-2xl shadow-2xl flex flex-col gap-3">
+            <h2 className="text-sm font-bold text-slate-300 tracking-wider">ELEMENT SEÇİMİ</h2>
+            <div className="grid grid-cols-4 gap-2 max-h-[70vh] overflow-y-auto pr-1">
+              {elements.map((el) => {
+                const isSelected = el.z === selectedAtomicNumber
+                return (
+                  <button
+                    key={el.z}
+                    onClick={() => setSelectedAtomicNumber(el.z)}
+                    className={`p-2 rounded-xl border text-center transition-all ${
+                      isSelected ? 'border-sky-400 ring-2 ring-sky-400/50 bg-slate-800 scale-105' : 'bg-slate-950/60 border-slate-800 hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="text-[9px] text-slate-400 font-mono">{el.z}</div>
+                    <div className="text-base font-black my-0.5" style={{ color: el.color }}>{el.symbol}</div>
+                    <div className="text-[9px] text-slate-300 truncate">{el.name}</div>
+                  </button>
+                )
+              })}
+            </div>
+          </aside>
+        )}
+      </div>
+    </div>
+  )
+}
