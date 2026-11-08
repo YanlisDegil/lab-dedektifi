@@ -311,7 +311,7 @@ export function NucleusStructureDetail() {
 
 // ─── ANA UYGULAMA BİLEŞENİ (APP) ───
 export default function App() {
-  const [activeScene, setActiveScene] = useState('lab') // 'lab' | 'atom' | 'earth' | 'nucleus'
+  const [activeScene, setActiveScene] = useState('lab')
   const [selectedAtomicNumber, setSelectedAtomicNumber] = useState(1)
 
   const selectedElement = useMemo(
@@ -323,7 +323,6 @@ export default function App() {
 
   return (
     <div className="w-screen h-screen bg-slate-950 flex flex-col font-sans select-none overflow-hidden text-white">
-      {/* Üst Menü / Sekmeler */}
       <header className="h-16 bg-slate-900 border-b border-slate-800 flex items-center justify-between px-6 z-10">
         <h1 className="text-lg font-bold bg-gradient-to-r from-sky-400 to-emerald-400 bg-clip-text text-transparent">
           3D Bilim Laboratuvarı & Simülasyon Ekranı
@@ -348,7 +347,6 @@ export default function App() {
         </div>
       </header>
 
-      {/* Ana İçerik ve 3D Sahne */}
       <div className="flex-1 relative flex">
         <Canvas camera={{ position: [0, 2, 7], fov: 50 }}>
           <color attach="background" args={['#020617']} />
@@ -372,7 +370,6 @@ export default function App() {
           {activeScene === 'nucleus' && <NucleusStructureDetail />}
         </Canvas>
 
-        {/* Eğer Atom sekmesindeysek periyodik tablo seçim menüsünü göster */}
         {activeScene === 'atom' && (
           <aside className="absolute right-6 top-6 w-80 bg-slate-900/90 backdrop-blur-md border border-slate-800 p-4 rounded-2xl shadow-2xl flex flex-col gap-3">
             <h2 className="text-sm font-bold text-slate-300 tracking-wider">ELEMENT SEÇİMİ</h2>
