@@ -454,6 +454,7 @@ function MitosisModule() {
             <MultiCellMitosisScene
               cellCount={cellCount}
               divisionProgress={divisionProgress}
+              isDividing={isDividing}
             />
           </Suspense>
           <OrbitControls />

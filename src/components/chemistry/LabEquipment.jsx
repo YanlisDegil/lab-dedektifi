@@ -3,47 +3,62 @@ import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 
-// ─── BRIGHT, PROFESSIONAL LABORATORY COUNTERTOP ───
-export function LabBench({ position = [0, -1.8, 0], size = [14, 0.4, 7] }) {
+// ─── AUTHENTIC WARM WOODEN LABORATORY BENCH (MAHOGANY / RICH WALNUT) ───
+export function LabBench({ position = [0, -1.8, 0], size = [14, 0.45, 7] }) {
   return (
     <group position={position}>
-      {/* Light Clean Ceramic/Granite Lab Bench Surface */}
+      {/* Polished Solid Hardwood Lab Bench Surface (Warm Walnut / Teak) */}
       <mesh receiveShadow position={[0, 0, 0]}>
         <boxGeometry args={size} />
         <meshStandardMaterial
-          color="#e2e8f0"
-          roughness={0.25}
-          metalness={0.1}
+          color="#5c2c16"
+          roughness={0.35}
+          metalness={0.08}
         />
       </mesh>
 
-      {/* Bench Beveled Edge Trim (Anodized Aluminum / Blue-Green Accent) */}
+      {/* Surface Inlay Planks for Realistic Wood Table Texture */}
+      {[-2.5, -1.25, 0, 1.25, 2.5].map((z, idx) => (
+        <mesh key={idx} position={[0, size[1] / 2 + 0.002, z]}>
+          <planeGeometry args={[size[0] * 0.98, 0.015]} />
+          <meshBasicMaterial color="#3d1b0c" opacity={0.6} transparent />
+        </mesh>
+      ))}
+
+      {/* Warm Solid Wood Beveled Edges */}
       <mesh position={[0, size[1] / 2 + 0.01, size[2] / 2]}>
-        <boxGeometry args={[size[0], 0.03, 0.08]} />
-        <meshStandardMaterial color="#0284c7" metalness={0.6} roughness={0.3} />
+        <boxGeometry args={[size[0], 0.04, 0.06]} />
+        <meshStandardMaterial color="#78350f" roughness={0.4} />
       </mesh>
       <mesh position={[0, -size[1] / 2 - 0.01, size[2] / 2]}>
-        <boxGeometry args={[size[0], 0.03, 0.08]} />
-        <meshStandardMaterial color="#64748b" metalness={0.7} roughness={0.3} />
+        <boxGeometry args={[size[0], 0.04, 0.06]} />
+        <meshStandardMaterial color="#451a03" roughness={0.5} />
       </mesh>
 
-      {/* Metallic Stand Legs */}
+      {/* Heavy Black Cast-Iron Bench Legs */}
       {[
-        [-size[0] / 2 + 0.4, -2, -size[2] / 2 + 0.4],
-        [size[0] / 2 - 0.4, -2, -size[2] / 2 + 0.4],
-        [-size[0] / 2 + 0.4, -2, size[2] / 2 - 0.4],
-        [size[0] / 2 - 0.4, -2, size[2] / 2 - 0.4],
+        [-size[0] / 2 + 0.5, -2, -size[2] / 2 + 0.5],
+        [size[0] / 2 - 0.5, -2, -size[2] / 2 + 0.5],
+        [-size[0] / 2 + 0.5, -2, size[2] / 2 - 0.5],
+        [size[0] / 2 - 0.5, -2, size[2] / 2 - 0.5],
       ].map((pos, idx) => (
-        <mesh key={idx} position={pos}>
-          <cylinderGeometry args={[0.09, 0.09, 4, 16]} />
-          <meshStandardMaterial color="#334155" metalness={0.8} roughness={0.2} />
-        </mesh>
+        <group key={idx} position={pos}>
+          <mesh>
+            <cylinderGeometry args={[0.1, 0.12, 4, 16]} />
+            <meshStandardMaterial color="#1e293b" metalness={0.8} roughness={0.3} />
+          </mesh>
+          {/* Floor foot */}
+          <mesh position={[0, -1.95, 0]}>
+            <cylinderGeometry args={[0.18, 0.18, 0.1, 16]} />
+            <meshStandardMaterial color="#0f172a" metalness={0.9} />
+          </mesh>
+        </group>
       ))}
     </group>
   )
 }
 
-// ─── HIGH-VISIBILITY CRYSTAL CLEAR GLASS BEAKER ───
+// ─── HIGH-VISIBILITY CRYSTAL CLEAR GLASS BEAKER (FULL LIQUID BODY VISIBLE) ───
 export function Beaker({
   position = [0, 0, 0],
   radius = 0.65,
@@ -56,15 +71,15 @@ export function Beaker({
   label = '',
 }) {
   const bubblesRef = useRef()
-  const bubbleCount = 24
+  const bubbleCount = 20
 
   const bubbleData = useMemo(() => {
     return Array.from({ length: bubbleCount }, () => ({
       x: (Math.random() - 0.5) * (radius * 1.3),
       y: Math.random() * (height * Math.max(0.2, liquidLevel)),
       z: (Math.random() - 0.5) * (radius * 1.3),
-      speed: 0.4 + Math.random() * 0.6,
-      size: 0.02 + Math.random() * 0.035,
+      speed: 0.4 + Math.random() * 0.5,
+      size: 0.02 + Math.random() * 0.03,
     }))
   }, [bubbleCount, radius, height, liquidLevel])
 
@@ -80,68 +95,128 @@ export function Beaker({
     })
   })
 
+  const liquidActualHeight = Math.max(0.08, height * liquidLevel)
+
   return (
     <group position={position}>
-      {/* Outer Glass Wall (High Specular, Realistic Glass) */}
-      <mesh position={[0, 0, 0]}>
+      {/* 1. SOLID VIBRANT LIQUID BODY - RENDERED WITH FULL VOLUME VISIBILITY */}
+      {liquidLevel > 0.02 && (
+        <group position={[0, -height / 2 + 0.04 + liquidActualHeight / 2, 0]}>
+          {/* Main cylindrical liquid volume */}
+          <mesh renderOrder={1}>
+            <cylinderGeometry
+              args={[radius * 0.94, radius * 0.94, liquidActualHeight, 36]}
+            />
+            <meshStandardMaterial
+              color={liquidColor}
+              roughness={0.15}
+              metalness={0.1}
+              transparent={false}
+            />
+          </mesh>
+
+          {/* Meniscus / Top Liquid Surface Disk */}
+          <mesh
+            position={[0, liquidActualHeight / 2, 0]}
+            rotation={[-Math.PI / 2, 0, 0]}
+            renderOrder={2}
+          >
+            <circleGeometry args={[radius * 0.94, 36]} />
+            <meshStandardMaterial
+              color={liquidColor}
+              roughness={0.05}
+              metalness={0.25}
+            />
+          </mesh>
+        </group>
+      )}
+
+      {/* 2. PRECIPITATE LAYER AT BOTTOM IF ANY */}
+      {showPrecipitate && (
+        <mesh position={[0, -height / 2 + 0.08, 0]} renderOrder={3}>
+          <cylinderGeometry args={[radius * 0.93, radius * 0.93, 0.1, 36]} />
+          <meshStandardMaterial
+            color={precipitateColor}
+            roughness={0.9}
+            emissive={precipitateColor}
+            emissiveIntensity={0.3}
+          />
+        </mesh>
+      )}
+
+      {/* 3. ACTIVE RISING BUBBLES */}
+      {showBubbles && (
+        <group ref={bubblesRef} renderOrder={4}>
+          {bubbleData.map((b, i) => (
+            <mesh key={i} position={[b.x, -height / 2 + b.y, b.z]}>
+              <sphereGeometry args={[b.size, 10, 10]} />
+              <meshBasicMaterial color="#ffffff" transparent opacity={0.9} />
+            </mesh>
+          ))}
+        </group>
+      )}
+
+      {/* 4. REALISTIC GLASS WALLS (depthWrite: false so liquid behind is NEVER hidden!) */}
+      <mesh position={[0, 0, 0]} renderOrder={5}>
         <cylinderGeometry args={[radius, radius, height, 36, 1, true]} />
-        <meshPhysicalMaterial
+        <meshStandardMaterial
           color="#f8fafc"
           transparent
-          opacity={0.35}
-          roughness={0.03}
-          transmission={0.92}
-          thickness={0.3}
-          ior={1.52}
-          reflectivity={0.9}
+          opacity={0.32}
+          roughness={0.06}
+          metalness={0.2}
+          depthWrite={false}
+          side={THREE.DoubleSide}
         />
       </mesh>
 
       {/* Glass Bottom Base */}
-      <mesh position={[0, -height / 2 + 0.02, 0]}>
+      <mesh position={[0, -height / 2 + 0.02, 0]} renderOrder={5}>
         <cylinderGeometry args={[radius, radius, 0.05, 36]} />
-        <meshPhysicalMaterial
+        <meshStandardMaterial
           color="#e2e8f0"
           transparent
-          opacity={0.6}
-          roughness={0.08}
-          transmission={0.88}
+          opacity={0.5}
+          roughness={0.1}
+          metalness={0.2}
+          depthWrite={false}
         />
       </mesh>
 
-      {/* Rim Beaded Lip */}
-      <mesh position={[0, height / 2, 0]} rotation={[Math.PI / 2, 0, 0]}>
+      {/* Beaded Glass Rim */}
+      <mesh position={[0, height / 2, 0]} rotation={[Math.PI / 2, 0, 0]} renderOrder={6}>
         <torusGeometry args={[radius, 0.035, 16, 36]} />
-        <meshStandardMaterial color="#f1f5f9" roughness={0.1} metalness={0.3} />
+        <meshStandardMaterial color="#ffffff" roughness={0.1} metalness={0.3} />
       </mesh>
 
-      {/* Spout / Pouring Lip */}
-      <mesh position={[radius * 0.95, height / 2 - 0.02, 0]} rotation={[0, 0, -0.6]}>
+      {/* Spout */}
+      <mesh position={[radius * 0.95, height / 2 - 0.02, 0]} rotation={[0, 0, -0.6]} renderOrder={6}>
         <coneGeometry args={[0.1, 0.16, 16]} />
-        <meshPhysicalMaterial
-          color="#f8fafc"
+        <meshStandardMaterial
+          color="#ffffff"
           transparent
           opacity={0.4}
-          roughness={0.05}
-          transmission={0.9}
+          depthWrite={false}
         />
       </mesh>
 
-      {/* Graduation Markings (mL Lines) - High Contrast White */}
-      {[0.2, 0.4, 0.6, 0.8].map((lvl, i) => {
+      {/* White Graduation Lines and Labels */}
+      {[0.25, 0.5, 0.75].map((lvl, i) => {
         const y = -height / 2 + height * lvl
         return (
-          <group key={i} position={[radius * 0.98, y, 0]}>
+          <group key={i} position={[radius * 0.98, y, 0]} renderOrder={7}>
             <mesh rotation={[0, 0, Math.PI / 2]}>
-              <boxGeometry args={[0.015, 0.14, 0.01]} />
+              <boxGeometry args={[0.015, 0.16, 0.01]} />
               <meshBasicMaterial color="#ffffff" />
             </mesh>
             <Text
               position={[0.02, 0, 0.08]}
-              fontSize={0.08}
+              fontSize={0.09}
               color="#ffffff"
               anchorX="left"
               anchorY="middle"
+              outlineWidth={0.01}
+              outlineColor="#000000"
             >
               {`${Math.round(lvl * 500)} mL`}
             </Text>
@@ -149,72 +224,17 @@ export function Beaker({
         )
       })}
 
-      {/* VIBRANT LIQUID BODY - Clearly visible from all angles */}
-      {liquidLevel > 0.02 && (
-        <group position={[0, -height / 2 + 0.03 + (height * liquidLevel) / 2, 0]}>
-          <mesh>
-            <cylinderGeometry
-              args={[radius * 0.96, radius * 0.96, height * liquidLevel, 36]}
-            />
-            <meshStandardMaterial
-              color={liquidColor}
-              transparent
-              opacity={0.88}
-              roughness={0.12}
-              metalness={0.15}
-            />
-          </mesh>
-
-          {/* Meniscus / Liquid Top Surface */}
-          <mesh
-            position={[0, (height * liquidLevel) / 2, 0]}
-            rotation={[-Math.PI / 2, 0, 0]}
-          >
-            <circleGeometry args={[radius * 0.96, 36]} />
-            <meshStandardMaterial
-              color={liquidColor}
-              roughness={0.05}
-              metalness={0.2}
-            />
-          </mesh>
-        </group>
-      )}
-
-      {/* Precipitate layer at bottom */}
-      {showPrecipitate && (
-        <mesh position={[0, -height / 2 + 0.06, 0]}>
-          <cylinderGeometry args={[radius * 0.95, radius * 0.95, 0.09, 36]} />
-          <meshStandardMaterial
-            color={precipitateColor}
-            roughness={0.95}
-            emissive={precipitateColor}
-            emissiveIntensity={0.2}
-          />
-        </mesh>
-      )}
-
-      {/* Active Reaction Bubbles */}
-      {showBubbles && (
-        <group ref={bubblesRef}>
-          {bubbleData.map((b, i) => (
-            <mesh key={i} position={[b.x, -height / 2 + b.y, b.z]}>
-              <sphereGeometry args={[b.size, 10, 10]} />
-              <meshBasicMaterial color="#ffffff" transparent opacity={0.85} />
-            </mesh>
-          ))}
-        </group>
-      )}
-
-      {/* 3D Label */}
+      {/* 3D Title Label */}
       {label && (
         <Text
           position={[0, height / 2 + 0.28, 0]}
           fontSize={0.13}
-          color="#0f172a"
+          color="#ffffff"
           anchorX="center"
           anchorY="middle"
-          outlineWidth={0.015}
-          outlineColor="#ffffff"
+          outlineWidth={0.02}
+          outlineColor="#000000"
+          renderOrder={8}
         >
           {label}
         </Text>
@@ -223,78 +243,86 @@ export function Beaker({
   )
 }
 
-// ─── ERLENMEYER FLASK ───
+// ─── ERLENMEYER FLASK (CLEAR VISIBLE LIQUID BODY) ───
 export function ErlenmeyerFlask({
   position = [0, 0, 0],
   scale = 1,
   liquidLevel = 0.5,
-  liquidColor = '#f43f5e',
+  liquidColor = '#0284c7',
   label = '',
 }) {
+  const actualH = Math.max(0.08, liquidLevel * 0.75)
+
   return (
     <group position={position} scale={scale}>
-      {/* Conical Flask Body */}
-      <mesh position={[0, 0.45, 0]}>
+      {/* Liquid inside conical body (Solid visible) */}
+      {liquidLevel > 0.02 && (
+        <group position={[0, 0.04 + actualH / 2, 0]} renderOrder={1}>
+          <mesh>
+            <cylinderGeometry
+              args={[
+                0.82 - (0.82 - 0.28) * liquidLevel * 0.85,
+                0.81,
+                actualH,
+                32,
+              ]}
+            />
+            <meshStandardMaterial
+              color={liquidColor}
+              roughness={0.15}
+              metalness={0.1}
+            />
+          </mesh>
+        </group>
+      )}
+
+      {/* Glass Body (depthWrite: false so liquid is never hidden) */}
+      <mesh position={[0, 0.45, 0]} renderOrder={5}>
         <cylinderGeometry args={[0.3, 0.85, 0.9, 32, 1, true]} />
-        <meshPhysicalMaterial
+        <meshStandardMaterial
           color="#f8fafc"
           transparent
-          opacity={0.35}
+          opacity={0.32}
           roughness={0.05}
-          transmission={0.92}
-          ior={1.5}
+          metalness={0.15}
+          depthWrite={false}
+          side={THREE.DoubleSide}
         />
-      </mesh>
-      {/* Neck */}
-      <mesh position={[0, 1.12, 0]}>
-        <cylinderGeometry args={[0.22, 0.22, 0.5, 32, 1, true]} />
-        <meshPhysicalMaterial
-          color="#f8fafc"
-          transparent
-          opacity={0.35}
-          roughness={0.05}
-          transmission={0.92}
-        />
-      </mesh>
-      {/* Flask Base */}
-      <mesh position={[0, 0.02, 0]}>
-        <cylinderGeometry args={[0.85, 0.85, 0.04, 32]} />
-        <meshPhysicalMaterial color="#cbd5e1" transparent opacity={0.5} />
-      </mesh>
-      {/* Rim */}
-      <mesh position={[0, 1.37, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.22, 0.03, 16, 32]} />
-        <meshStandardMaterial color="#f1f5f9" />
       </mesh>
 
-      {/* Liquid inside conical body */}
-      {liquidLevel > 0.04 && (
-        <mesh position={[0, 0.03 + (liquidLevel * 0.72) / 2, 0]}>
-          <cylinderGeometry
-            args={[
-              0.85 - (0.85 - 0.3) * liquidLevel * 0.85,
-              0.83,
-              liquidLevel * 0.72,
-              32,
-            ]}
-          />
-          <meshStandardMaterial
-            color={liquidColor}
-            transparent
-            opacity={0.9}
-            roughness={0.1}
-          />
-        </mesh>
-      )}
+      {/* Neck */}
+      <mesh position={[0, 1.12, 0]} renderOrder={5}>
+        <cylinderGeometry args={[0.22, 0.22, 0.5, 32, 1, true]} />
+        <meshStandardMaterial
+          color="#f8fafc"
+          transparent
+          opacity={0.32}
+          roughness={0.05}
+          depthWrite={false}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Base */}
+      <mesh position={[0, 0.02, 0]} renderOrder={5}>
+        <cylinderGeometry args={[0.85, 0.85, 0.04, 32]} />
+        <meshStandardMaterial color="#cbd5e1" transparent opacity={0.4} depthWrite={false} />
+      </mesh>
+
+      {/* Rim */}
+      <mesh position={[0, 1.37, 0]} rotation={[Math.PI / 2, 0, 0]} renderOrder={6}>
+        <torusGeometry args={[0.22, 0.03, 16, 32]} />
+        <meshStandardMaterial color="#ffffff" roughness={0.1} />
+      </mesh>
 
       {label && (
         <Text
           position={[0, 1.6, 0]}
-          fontSize={0.12}
-          color="#0f172a"
+          fontSize={0.13}
+          color="#ffffff"
           anchorX="center"
-          outlineWidth={0.015}
-          outlineColor="#ffffff"
+          outlineWidth={0.02}
+          outlineColor="#000000"
         >
           {label}
         </Text>
@@ -323,24 +351,24 @@ export function BunsenBurner({ position = [0, 0, 0], isLit = true, flameIntensit
       {/* Base */}
       <mesh position={[0, -0.6, 0]}>
         <cylinderGeometry args={[0.55, 0.62, 0.14, 32]} />
-        <meshStandardMaterial color="#475569" metalness={0.8} roughness={0.25} />
+        <meshStandardMaterial color="#334155" metalness={0.8} roughness={0.25} />
       </mesh>
       {/* Gas connector */}
       <mesh position={[0.42, -0.6, 0]} rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.07, 0.07, 0.35, 16]} />
         <meshStandardMaterial color="#d97706" metalness={0.8} roughness={0.3} />
       </mesh>
-      {/* Rubber Gas Tubing */}
+      {/* Rubber Gas Hose */}
       <mesh position={[0.8, -0.62, 0]} rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.06, 0.06, 0.5, 16]} />
         <meshStandardMaterial color="#ea580c" roughness={0.6} />
       </mesh>
-      {/* Chimney / Barrel */}
+      {/* Chimney */}
       <mesh position={[0, 0, 0]}>
         <cylinderGeometry args={[0.11, 0.11, 1.15, 24]} />
         <meshStandardMaterial color="#94a3b8" metalness={0.9} roughness={0.15} />
       </mesh>
-      {/* Air Control Collar */}
+      {/* Air Collar */}
       <mesh position={[0, -0.35, 0]}>
         <cylinderGeometry args={[0.13, 0.13, 0.18, 24]} />
         <meshStandardMaterial color="#cbd5e1" metalness={0.8} roughness={0.2} />
@@ -349,18 +377,16 @@ export function BunsenBurner({ position = [0, 0, 0], isLit = true, flameIntensit
       {/* Flame */}
       {isLit && (
         <group position={[0, 0.58, 0]}>
-          {/* Outer Flame */}
           <mesh ref={flameRef} position={[0, 0.42 * flameIntensity, 0]}>
             <coneGeometry args={[0.18 * flameIntensity, 0.85 * flameIntensity, 24]} />
             <meshStandardMaterial
               color="#38bdf8"
               emissive="#0284c7"
-              emissiveIntensity={2.2}
+              emissiveIntensity={2.5}
               transparent
               opacity={0.85}
             />
           </mesh>
-          {/* Hot Inner Blue Core */}
           <mesh ref={innerFlameRef} position={[0, 0.25 * flameIntensity, 0]}>
             <coneGeometry args={[0.09 * flameIntensity, 0.5 * flameIntensity, 24]} />
             <meshStandardMaterial
@@ -371,7 +397,7 @@ export function BunsenBurner({ position = [0, 0, 0], isLit = true, flameIntensit
               opacity={0.95}
             />
           </mesh>
-          <pointLight color="#38bdf8" intensity={2.5 * flameIntensity} distance={5} />
+          <pointLight color="#38bdf8" intensity={2.8 * flameIntensity} distance={5} />
         </group>
       )}
     </group>
@@ -393,7 +419,7 @@ export function BuretteSetup({
         <boxGeometry args={[0.9, 0.08, 1.3]} />
         <meshStandardMaterial color="#334155" metalness={0.8} roughness={0.25} />
       </mesh>
-      {/* Stand Vertical Rod */}
+      {/* Stand Rod */}
       <mesh position={[-0.8, 0.5, 0]}>
         <cylinderGeometry args={[0.045, 0.045, 4.0, 16]} />
         <meshStandardMaterial color="#94a3b8" metalness={0.95} roughness={0.15} />
@@ -403,7 +429,6 @@ export function BuretteSetup({
         <boxGeometry args={[0.8, 0.06, 0.06]} />
         <meshStandardMaterial color="#475569" metalness={0.8} />
       </mesh>
-      {/* Clamp Ring */}
       <mesh position={[0, 1.0, 0]}>
         <torusGeometry args={[0.13, 0.035, 12, 24]} />
         <meshStandardMaterial color="#475569" metalness={0.8} />
@@ -412,12 +437,12 @@ export function BuretteSetup({
       {/* Burette Glass Column */}
       <mesh position={[0, 1.2, 0]}>
         <cylinderGeometry args={[0.085, 0.085, 2.4, 24, 1, true]} />
-        <meshPhysicalMaterial
+        <meshStandardMaterial
           color="#f8fafc"
           transparent
           opacity={0.35}
-          roughness={0.05}
-          transmission={0.9}
+          depthWrite={false}
+          side={THREE.DoubleSide}
         />
       </mesh>
 
@@ -425,26 +450,26 @@ export function BuretteSetup({
       {liquidLevel > 0.02 && (
         <mesh position={[0, 0 + (liquidLevel * 2.3) / 2, 0]}>
           <cylinderGeometry args={[0.08, 0.08, liquidLevel * 2.3, 24]} />
-          <meshStandardMaterial color={liquidColor} transparent opacity={0.9} />
+          <meshStandardMaterial color={liquidColor} />
         </mesh>
       )}
 
-      {/* Stopcock valve */}
+      {/* Stopcock */}
       <mesh position={[0, -0.05, 0]}>
         <boxGeometry args={[0.18, 0.08, 0.08]} />
         <meshStandardMaterial color="#f59e0b" metalness={0.5} roughness={0.3} />
       </mesh>
 
-      {/* Burette Tip */}
+      {/* Tip */}
       <mesh position={[0, -0.25, 0]}>
         <coneGeometry args={[0.06, 0.3, 16]} rotation={[Math.PI, 0, 0]} />
-        <meshPhysicalMaterial color="#ffffff" transparent opacity={0.4} transmission={0.9} />
+        <meshStandardMaterial color="#ffffff" transparent opacity={0.4} depthWrite={false} />
       </mesh>
 
-      {/* Falling Liquid Drop */}
+      {/* Falling Drop */}
       {isDripping && (
         <mesh position={[0, -0.4 - dropProgress * 0.9, 0]}>
-          <sphereGeometry args={[0.04, 12, 12]} />
+          <sphereGeometry args={[0.045, 12, 12]} />
           <meshStandardMaterial color={liquidColor} emissive={liquidColor} emissiveIntensity={0.6} />
         </mesh>
       )}
@@ -452,32 +477,32 @@ export function BuretteSetup({
   )
 }
 
-// ─── 3D DIGITAL PH METER DEVICE (NO FLOATING HTML BEHIND MESH) ───
+// ─── 3D DIGITAL PH METER DEVICE ───
 export function PHMeterDevice({
   position = [1.5, 0, 0],
   pH = 7.0,
 }) {
   return (
     <group position={position}>
-      {/* Device Body (Angled Tabletop Meter) */}
+      {/* Device Body */}
       <mesh position={[0, 0.25, 0]} rotation={[-0.3, 0, 0]}>
         <boxGeometry args={[1.0, 1.2, 0.35]} />
         <meshStandardMaterial color="#1e293b" roughness={0.3} metalness={0.4} />
       </mesh>
 
-      {/* Bezel frame */}
+      {/* Bezel */}
       <mesh position={[0, 0.45, 0.18]} rotation={[-0.3, 0, 0]}>
         <boxGeometry args={[0.82, 0.52, 0.03]} />
         <meshStandardMaterial color="#0284c7" metalness={0.7} />
       </mesh>
 
-      {/* LCD Glass Screen */}
+      {/* Screen Face */}
       <mesh position={[0, 0.45, 0.2]} rotation={[-0.3, 0, 0]}>
         <planeGeometry args={[0.76, 0.46]} />
         <meshBasicMaterial color="#0f172a" />
       </mesh>
 
-      {/* 3D Rendered Digital Text directly ON screen face */}
+      {/* Digital Text directly ON screen */}
       <group position={[0, 0.45, 0.21]} rotation={[-0.3, 0, 0]}>
         <Text
           position={[0, 0.12, 0]}
@@ -499,7 +524,7 @@ export function PHMeterDevice({
         </Text>
       </group>
 
-      {/* Buttons on face */}
+      {/* Buttons */}
       {[-0.25, 0, 0.25].map((x, i) => (
         <mesh key={i} position={[x, 0.05, 0.24]} rotation={[-0.3, 0, 0]}>
           <cylinderGeometry args={[0.06, 0.06, 0.04, 16]} rotation={[Math.PI / 2, 0, 0]} />
@@ -507,19 +532,18 @@ export function PHMeterDevice({
         </mesh>
       ))}
 
-      {/* Heavy Flexible Probe Cable */}
+      {/* Cable */}
       <mesh position={[-0.7, 0.1, 0]}>
         <cylinderGeometry args={[0.02, 0.02, 1.2, 12]} rotation={[0, 0, Math.PI / 3]} />
         <meshStandardMaterial color="#020617" roughness={0.8} />
       </mesh>
 
-      {/* Electrode Stand & Submerged Probe */}
+      {/* Electrode Probe */}
       <group position={[-1.7, -0.2, 0]}>
         <mesh position={[0, 0.4, 0]}>
           <cylinderGeometry args={[0.035, 0.035, 1.2, 16]} />
           <meshStandardMaterial color="#94a3b8" metalness={0.9} roughness={0.2} />
         </mesh>
-        {/* Glass Sensing Bulb */}
         <mesh position={[0, -0.25, 0]}>
           <sphereGeometry args={[0.075, 16, 16]} />
           <meshStandardMaterial
@@ -543,12 +567,10 @@ export function LitmusPaper({
 }) {
   return (
     <group position={position} rotation={[0, 0, 0.2]}>
-      {/* Upper Dry Handle */}
       <mesh position={[0, 0.25, 0]}>
         <boxGeometry args={[0.16, 0.5, 0.01]} />
         <meshStandardMaterial color="#f8fafc" roughness={0.9} />
       </mesh>
-      {/* Dipped Sensitive Region */}
       <mesh position={[0, -0.2, 0]}>
         <boxGeometry args={[0.16, 0.4, 0.01]} />
         <meshStandardMaterial
@@ -560,7 +582,7 @@ export function LitmusPaper({
   )
 }
 
-// ─── 3D BOHR ATOM WITH REAL ELECTRON SHELLS ───
+// ─── HIGH-TECH 3D BOHR ATOM WITH REAL ELECTRON SHELLS & ACTIVE ROTATION ───
 export function BohrAtom({
   atomicNumber = 1,
   symbol = 'H',
@@ -572,28 +594,38 @@ export function BohrAtom({
 
   useFrame((state) => {
     if (groupRef.current) {
-      groupRef.current.rotation.y = state.clock.elapsedTime * 0.25
+      groupRef.current.rotation.y = state.clock.elapsedTime * 0.3
     }
   })
 
   return (
     <group ref={groupRef}>
-      {/* Glowing High-Tech Nucleus */}
+      {/* Central Glowing Nucleus */}
       <mesh>
-        <sphereGeometry args={[0.42, 32, 32]} />
+        <sphereGeometry args={[0.45, 32, 32]} />
         <meshStandardMaterial
           color="#38bdf8"
           emissive="#0284c7"
-          emissiveIntensity={1.2}
+          emissiveIntensity={1.5}
           roughness={0.2}
           metalness={0.7}
         />
       </mesh>
 
-      {/* Nucleus Symbol 3D Text */}
+      {/* Nucleus Symbol Front & Back */}
       <Text
-        position={[0, 0, 0.46]}
-        fontSize={0.28}
+        position={[0, 0, 0.48]}
+        fontSize={0.26}
+        color="#ffffff"
+        anchorX="center"
+        anchorY="middle"
+      >
+        {symbol}
+      </Text>
+      <Text
+        position={[0, 0, -0.48]}
+        rotation={[0, Math.PI, 0]}
+        fontSize={0.26}
         color="#ffffff"
         anchorX="center"
         anchorY="middle"
@@ -601,18 +633,18 @@ export function BohrAtom({
         {symbol}
       </Text>
 
-      {/* Electron Orbit Shells */}
+      {/* Electron Shells (Orbits) */}
       {shells.map((count, shellIdx) => {
-        const radius = 0.95 + shellIdx * 0.7
-        const tiltX = (shellIdx * Math.PI) / 4
-        const tiltZ = (shellIdx * Math.PI) / 6
+        const radius = 1.0 + shellIdx * 0.75
+        const tiltX = (shellIdx * Math.PI) / 3.5
+        const tiltZ = (shellIdx * Math.PI) / 5
 
         return (
           <group key={shellIdx} rotation={[tiltX, 0, tiltZ]}>
-            {/* Orbit Ring */}
+            {/* Orbit Ring Guideline */}
             <mesh rotation={[Math.PI / 2, 0, 0]}>
-              <torusGeometry args={[radius, 0.016, 16, 64]} />
-              <meshBasicMaterial color="#60a5fa" transparent opacity={0.4} />
+              <torusGeometry args={[radius, 0.018, 16, 64]} />
+              <meshBasicMaterial color="#38bdf8" transparent opacity={0.45} />
             </mesh>
 
             {/* Electrons in this shell */}
@@ -623,7 +655,7 @@ export function BohrAtom({
                   key={eIdx}
                   radius={radius}
                   initialAngle={angle}
-                  speed={2.0 - shellIdx * 0.25}
+                  speed={2.2 - shellIdx * 0.3}
                 />
               )
             })}
@@ -647,11 +679,11 @@ function ElectronParticle({ radius, initialAngle, speed }) {
 
   return (
     <mesh ref={ref}>
-      <sphereGeometry args={[0.075, 14, 14]} />
+      <sphereGeometry args={[0.085, 16, 16]} />
       <meshStandardMaterial
         color="#38bdf8"
         emissive="#38bdf8"
-        emissiveIntensity={2.5}
+        emissiveIntensity={3.0}
       />
     </mesh>
   )

@@ -3,31 +3,26 @@ import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 
-// ─── BATTERY (Vibrant Yellow / Red Terminals) ───
+// ─── BATTERY (Vibrant Gold/Amber Body with Red Terminal) ───
 export function Battery({ position = [0, 0, 0], voltage = 9, scale = 1 }) {
   return (
     <group position={position} scale={scale}>
-      {/* Battery Cylinder Body */}
       <mesh position={[0, 0.4, 0]}>
         <cylinderGeometry args={[0.38, 0.38, 0.85, 24]} />
         <meshStandardMaterial color="#f59e0b" metalness={0.4} roughness={0.3} />
       </mesh>
-      {/* Dark Brand Band */}
       <mesh position={[0, 0.4, 0]}>
         <cylinderGeometry args={[0.385, 0.385, 0.35, 24]} />
         <meshStandardMaterial color="#0f172a" metalness={0.7} roughness={0.3} />
       </mesh>
-      {/* Positive Nub (Red) */}
       <mesh position={[0, 0.88, 0]}>
         <cylinderGeometry args={[0.1, 0.1, 0.12, 16]} />
         <meshStandardMaterial color="#ef4444" metalness={0.8} roughness={0.2} />
       </mesh>
-      {/* Negative Cap (Metallic silver) */}
       <mesh position={[0, -0.04, 0]}>
         <cylinderGeometry args={[0.39, 0.39, 0.06, 24]} />
         <meshStandardMaterial color="#94a3b8" metalness={0.9} roughness={0.2} />
       </mesh>
-      {/* Voltage 3D Text on Body */}
       <Text
         position={[0, 0.4, 0.4]}
         fontSize={0.16}
@@ -41,16 +36,14 @@ export function Battery({ position = [0, 0, 0], voltage = 9, scale = 1 }) {
   )
 }
 
-// ─── RESISTOR ───
-export function Resistor({ position = [0, 0, 0], resistance = 100, scale = 1 }) {
+// ─── RESISTOR / RHEOSTAT ───
+export function Resistor({ position = [0, 0, 0], resistance = 100, scale = 1, isRheostat = false }) {
   return (
     <group position={position} scale={scale}>
-      {/* Ceramic Resistor Body */}
       <mesh rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.16, 0.16, 0.8, 20]} />
-        <meshStandardMaterial color="#fed7aa" roughness={0.6} />
+        <meshStandardMaterial color={isRheostat ? '#38bdf8' : '#fed7aa'} roughness={0.5} />
       </mesh>
-      {/* Lead Wires */}
       <mesh position={[-0.55, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.025, 0.025, 0.4, 12]} />
         <meshStandardMaterial color="#cbd5e1" metalness={0.9} />
@@ -59,7 +52,7 @@ export function Resistor({ position = [0, 0, 0], resistance = 100, scale = 1 }) 
         <cylinderGeometry args={[0.025, 0.025, 0.4, 12]} />
         <meshStandardMaterial color="#cbd5e1" metalness={0.9} />
       </mesh>
-      {/* Color Bands */}
+      {/* Bands */}
       {[-0.2, -0.06, 0.08, 0.24].map((x, i) => (
         <mesh key={i} position={[x, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
           <cylinderGeometry args={[0.165, 0.165, 0.06, 20]} />
@@ -68,23 +61,22 @@ export function Resistor({ position = [0, 0, 0], resistance = 100, scale = 1 }) 
           />
         </mesh>
       ))}
-      {/* Resistance Label */}
       <Text
         position={[0, 0.28, 0]}
         fontSize={0.12}
-        color="#0f172a"
+        color="#ffffff"
         anchorX="center"
         anchorY="middle"
         outlineWidth={0.015}
-        outlineColor="#ffffff"
+        outlineColor="#000000"
       >
-        {`${resistance}Ω`}
+        {isRheostat ? `Reosta: ${resistance}Ω` : `${resistance}Ω`}
       </Text>
     </group>
   )
 }
 
-// ─── INTERACTIVE WIRE WITH GLOWING ELECTRON FLOW ───
+// ─── INTERACTIVE WIRE WITH GLOWING ELECTRON PARTICLES ───
 export function Wire({ start = [0, 0, 0], end = [1, 0, 0], current = 0 }) {
   const electronRef = useRef()
   const vStart = new THREE.Vector3(...start)
@@ -105,7 +97,6 @@ export function Wire({ start = [0, 0, 0], end = [1, 0, 0], current = 0 }) {
 
   return (
     <group>
-      {/* Copper Wire Core */}
       <mesh
         position={mid}
         quaternion={new THREE.Quaternion().setFromUnitVectors(
@@ -114,29 +105,20 @@ export function Wire({ start = [0, 0, 0], end = [1, 0, 0], current = 0 }) {
         )}
       >
         <cylinderGeometry args={[0.035, 0.035, len, 12]} />
-        <meshStandardMaterial
-          color="#0284c7"
-          roughness={0.3}
-          metalness={0.7}
-        />
+        <meshStandardMaterial color="#0284c7" roughness={0.3} metalness={0.7} />
       </mesh>
 
-      {/* Moving Electron Bead */}
       {hasCurrent && (
         <mesh ref={electronRef}>
           <sphereGeometry args={[0.065, 10, 10]} />
-          <meshStandardMaterial
-            color="#facc15"
-            emissive="#eab308"
-            emissiveIntensity={2.5}
-          />
+          <meshStandardMaterial color="#facc15" emissive="#eab308" emissiveIntensity={2.5} />
         </mesh>
       )}
     </group>
   )
 }
 
-// ─── LIGHT BULB (WITH OVERVOLTAGE BURNOUT ANIMATION) ───
+// ─── LIGHT BULB (WITH OVERVOLTAGE BURNOUT) ───
 export function LightBulb({
   position = [0, 0, 0],
   voltageAcross = 0,
@@ -149,7 +131,7 @@ export function LightBulb({
 
   return (
     <group position={position} scale={scale}>
-      {/* Brass Socket */}
+      {/* Socket */}
       <mesh position={[0, -0.15, 0]}>
         <cylinderGeometry args={[0.18, 0.18, 0.3, 16]} />
         <meshStandardMaterial color="#d97706" metalness={0.8} roughness={0.2} />
@@ -179,7 +161,6 @@ export function LightBulb({
       {/* Filament */}
       {!isBurnedOut ? (
         <group position={[0, 0.22, 0]}>
-          {/* Glowing tungsten coils */}
           <mesh>
             <torusGeometry args={[0.09, 0.015, 8, 16, Math.PI]} />
             <meshStandardMaterial
@@ -193,7 +174,6 @@ export function LightBulb({
           )}
         </group>
       ) : (
-        /* Broken Broken Filament */
         <group position={[0, 0.2, 0]}>
           <mesh position={[-0.04, 0, 0]} rotation={[0, 0, 0.4]}>
             <cylinderGeometry args={[0.01, 0.01, 0.08, 6]} />
@@ -203,7 +183,6 @@ export function LightBulb({
             <cylinderGeometry args={[0.01, 0.01, 0.08, 6]} />
             <meshStandardMaterial color="#0f172a" />
           </mesh>
-          {/* Black soot inside bulb */}
           <mesh position={[0, 0.05, 0]}>
             <sphereGeometry args={[0.12, 12, 12]} />
             <meshStandardMaterial color="#0f172a" transparent opacity={0.7} />
@@ -215,11 +194,11 @@ export function LightBulb({
       <Text
         position={[0, -0.45, 0]}
         fontSize={0.13}
-        color={isBurnedOut ? '#ef4444' : '#0f172a'}
+        color={isBurnedOut ? '#ef4444' : '#ffffff'}
         anchorX="center"
         anchorY="middle"
         outlineWidth={0.015}
-        outlineColor="#ffffff"
+        outlineColor="#000000"
       >
         {isBurnedOut ? 'PATLADI 💥' : label || `${voltageAcross.toFixed(1)}V`}
       </Text>
@@ -231,12 +210,10 @@ export function LightBulb({
 export function Switch({ position = [0, 0, 0], isOn = true, onToggle, scale = 1 }) {
   return (
     <group position={position} scale={scale} onClick={onToggle}>
-      {/* Switch Base */}
       <mesh position={[0, -0.05, 0]}>
         <boxGeometry args={[1.0, 0.1, 0.4]} />
         <meshStandardMaterial color="#475569" metalness={0.6} roughness={0.3} />
       </mesh>
-      {/* Contacts */}
       <mesh position={[-0.35, 0.05, 0]}>
         <cylinderGeometry args={[0.08, 0.08, 0.15, 12]} />
         <meshStandardMaterial color="#d97706" metalness={0.9} />
@@ -245,13 +222,11 @@ export function Switch({ position = [0, 0, 0], isOn = true, onToggle, scale = 1 
         <cylinderGeometry args={[0.08, 0.08, 0.15, 12]} />
         <meshStandardMaterial color="#d97706" metalness={0.9} />
       </mesh>
-      {/* Knife Lever (Hinged at left contact) */}
       <group position={[-0.35, 0.08, 0]} rotation={[0, 0, isOn ? 0 : 0.6]}>
         <mesh position={[0.35, 0, 0]}>
           <boxGeometry args={[0.7, 0.05, 0.08]} />
           <meshStandardMaterial color="#f59e0b" metalness={0.8} />
         </mesh>
-        {/* Insulated Handle */}
         <mesh position={[0.65, 0, 0]}>
           <cylinderGeometry args={[0.06, 0.06, 0.2, 12]} rotation={[Math.PI / 2, 0, 0]} />
           <meshStandardMaterial color="#ef4444" roughness={0.4} />
@@ -262,134 +237,242 @@ export function Switch({ position = [0, 0, 0], isOn = true, onToggle, scale = 1 
 }
 
 // ============================================================
-// MAIN CIRCUIT SCENE (SERIES WITH 2 BULBS, PARALLEL WITH 2 BULBS)
+// MAIN CIRCUIT SCENE (WARM MAHOGANY WOODEN TABLE + EXPANDED DEVRE SEÇENEKLERİ)
 // ============================================================
 export function CircuitScene({
-  circuitType = 'series_2bulbs', // 'simple', 'series_2bulbs', 'parallel_2bulbs'
+  circuitType = 'series_2bulbs',
   voltage = 9,
+  rheostatResistance = 50,
   switchOn = true,
   isBurnedOut = false,
+  isShortCircuit = false,
   onToggleSwitch,
 }) {
-  // In series: 2 bulbs share voltage (V / 2 each)
-  // In parallel: 2 bulbs each get full voltage (V each)
   const isSeries = circuitType === 'series_2bulbs'
   const isParallel = circuitType === 'parallel_2bulbs'
+  const isMixed = circuitType === 'mixed_3bulbs'
+  const isRheostat = circuitType === 'rheostat'
 
-  const bulbVoltage = !switchOn || isBurnedOut ? 0 : isSeries ? voltage / 2 : voltage
-  const current = !switchOn || isBurnedOut ? 0 : isSeries ? voltage / 20 : (voltage / 10) * 2
+  // Voltage distributions
+  let bulb1Voltage = 0
+  let bulb2Voltage = 0
+  let bulb3Voltage = 0
+  let totalCurrent = 0
+
+  if (switchOn && !isBurnedOut && !isShortCircuit) {
+    if (isSeries) {
+      bulb1Voltage = voltage / 2
+      bulb2Voltage = voltage / 2
+      totalCurrent = voltage / 20
+    } else if (isParallel) {
+      bulb1Voltage = voltage
+      bulb2Voltage = voltage
+      totalCurrent = (voltage / 10) * 2
+    } else if (isMixed) {
+      // 1 bulb in series with (2 bulbs in parallel)
+      // R_parallel = 10 / 2 = 5 ohm. R_total = 10 + 5 = 15 ohm.
+      totalCurrent = voltage / 15
+      bulb1Voltage = totalCurrent * 10 // series bulb gets 2/3 of voltage
+      bulb2Voltage = totalCurrent * 5  // parallel bulbs get 1/3 of voltage
+      bulb3Voltage = totalCurrent * 5
+    } else if (isRheostat) {
+      // Bulb in series with rheostat
+      const R_tot = 10 + rheostatResistance
+      totalCurrent = voltage / R_tot
+      bulb1Voltage = totalCurrent * 10
+    } else {
+      // Single bulb
+      bulb1Voltage = voltage
+      totalCurrent = voltage / 10
+    }
+  }
 
   return (
     <group position={[0, 0, 0]}>
-      {/* Clean Laboratory Workbench Countertop */}
+      {/* SOLID WARM MAHOGANY WOODEN LABORATORY WORKBENCH */}
       <mesh position={[0, -1.8, 0]}>
-        <boxGeometry args={[11, 0.35, 6]} />
-        <meshStandardMaterial color="#f1f5f9" roughness={0.25} metalness={0.1} />
+        <boxGeometry args={[12, 0.45, 6.5]} />
+        <meshStandardMaterial color="#5c2c16" roughness={0.35} metalness={0.08} />
       </mesh>
-      {/* Grid Guide Marks on Table */}
-      <gridHelper args={[10, 20, '#cbd5e1', '#e2e8f0']} position={[0, -1.61, 0]} />
 
-      {/* Battery */}
-      <Battery position={[-3.2, -0.6, 0]} voltage={voltage} scale={1.2} />
+      {/* Wood plank line grooves */}
+      {[-2, -0.7, 0.7, 2].map((z, i) => (
+        <mesh key={i} position={[0, -1.57, z]}>
+          <planeGeometry args={[11.8, 0.015]} />
+          <meshBasicMaterial color="#3d1b0c" opacity={0.6} transparent />
+        </mesh>
+      ))}
+
+      {/* Sturdy Table Legs */}
+      {[
+        [-5.5, -2.5, -2.7],
+        [5.5, -2.5, -2.7],
+        [-5.5, -2.5, 2.7],
+        [5.5, -2.5, 2.7],
+      ].map((pos, idx) => (
+        <mesh key={idx} position={pos}>
+          <cylinderGeometry args={[0.08, 0.1, 2.2, 16]} />
+          <meshStandardMaterial color="#1e293b" metalness={0.8} />
+        </mesh>
+      ))}
+
+      {/* Power Source: Battery */}
+      <Battery position={[-3.6, -0.6, 0]} voltage={voltage} scale={1.2} />
 
       {/* Switch */}
-      <Switch position={[-1.2, 0.8, 0]} isOn={switchOn} onToggle={onToggleSwitch} scale={1.1} />
+      <Switch position={[-1.6, 0.8, 0]} isOn={switchOn} onToggle={onToggleSwitch} scale={1.1} />
 
-      {/* CIRCUIT CONFIGURATION 1: SERIES CIRCUIT WITH 2 BULBS */}
+      {/* 1. SERIES 2 BULBS */}
       {isSeries && (
         <group>
-          {/* Bulb 1 */}
           <LightBulb
-            position={[0.8, 0.8, 0]}
-            voltageAcross={bulbVoltage}
-            current={current}
+            position={[0.6, 0.8, 0]}
+            voltageAcross={bulb1Voltage}
+            current={totalCurrent}
             isBurnedOut={isBurnedOut}
             scale={1.2}
             label="Ampul 1 (V/2)"
           />
-          {/* Bulb 2 */}
           <LightBulb
             position={[2.8, 0.8, 0]}
-            voltageAcross={bulbVoltage}
-            current={current}
+            voltageAcross={bulb2Voltage}
+            current={totalCurrent}
             isBurnedOut={isBurnedOut}
             scale={1.2}
             label="Ampul 2 (V/2)"
           />
-
-          {/* Top Wires connecting battery -> switch -> bulb1 -> bulb2 */}
-          <Wire start={[-3.2, 0.8, 0]} end={[-1.6, 0.8, 0]} current={current} />
-          <Wire start={[-0.8, 0.8, 0]} end={[0.4, 0.8, 0]} current={current} />
-          <Wire start={[1.2, 0.8, 0]} end={[2.4, 0.8, 0]} current={current} />
-
-          {/* Right return wire */}
-          <Wire start={[3.2, 0.8, 0]} end={[3.6, 0.8, 0]} current={current} />
-          <Wire start={[3.6, 0.8, 0]} end={[3.6, -1.2, 0]} current={current} />
-          <Wire start={[3.6, -1.2, 0]} end={[-3.2, -1.2, 0]} current={current} />
-          <Wire start={[-3.2, -1.2, 0]} end={[-3.2, -0.6, 0]} current={current} />
+          <Wire start={[-3.6, 0.8, 0]} end={[-2.0, 0.8, 0]} current={totalCurrent} />
+          <Wire start={[-1.2, 0.8, 0]} end={[0.2, 0.8, 0]} current={totalCurrent} />
+          <Wire start={[1.0, 0.8, 0]} end={[2.4, 0.8, 0]} current={totalCurrent} />
+          <Wire start={[3.2, 0.8, 0]} end={[3.8, 0.8, 0]} current={totalCurrent} />
+          <Wire start={[3.8, 0.8, 0]} end={[3.8, -1.2, 0]} current={totalCurrent} />
+          <Wire start={[3.8, -1.2, 0]} end={[-3.6, -1.2, 0]} current={totalCurrent} />
+          <Wire start={[-3.6, -1.2, 0]} end={[-3.6, -0.6, 0]} current={totalCurrent} />
         </group>
       )}
 
-      {/* CIRCUIT CONFIGURATION 2: PARALLEL CIRCUIT WITH 2 BULBS */}
+      {/* 2. PARALLEL 2 BULBS */}
       {isParallel && (
         <group>
-          {/* Branch 1: Bulb 1 */}
           <LightBulb
             position={[1.5, 0.9, 0]}
-            voltageAcross={bulbVoltage}
-            current={current / 2}
+            voltageAcross={bulb1Voltage}
+            current={totalCurrent / 2}
             isBurnedOut={isBurnedOut}
             scale={1.2}
             label="Ampul 1 (V)"
           />
-          {/* Branch 2: Bulb 2 */}
           <LightBulb
             position={[1.5, -0.4, 0]}
-            voltageAcross={bulbVoltage}
-            current={current / 2}
+            voltageAcross={bulb2Voltage}
+            current={totalCurrent / 2}
             isBurnedOut={isBurnedOut}
             scale={1.2}
             label="Ampul 2 (V)"
           />
-
-          {/* Junction splits */}
-          <Wire start={[-3.2, 0.8, 0]} end={[-1.6, 0.8, 0]} current={current} />
-          <Wire start={[-0.8, 0.8, 0]} end={[0.2, 0.8, 0]} current={current} />
-
-          {/* Left Split Vertical Wire */}
-          <Wire start={[0.2, 0.9, 0]} end={[0.2, -0.4, 0]} current={current} />
-          <Wire start={[0.2, 0.9, 0]} end={[1.1, 0.9, 0]} current={current / 2} />
-          <Wire start={[0.2, -0.4, 0]} end={[1.1, -0.4, 0]} current={current / 2} />
-
-          {/* Right Rejoin Vertical Wire */}
-          <Wire start={[1.9, 0.9, 0]} end={[2.8, 0.9, 0]} current={current / 2} />
-          <Wire start={[1.9, -0.4, 0]} end={[2.8, -0.4, 0]} current={current / 2} />
-          <Wire start={[2.8, 0.9, 0]} end={[2.8, -0.4, 0]} current={current} />
-
-          {/* Return Wire */}
-          <Wire start={[2.8, -0.4, 0]} end={[2.8, -1.2, 0]} current={current} />
-          <Wire start={[2.8, -1.2, 0]} end={[-3.2, -1.2, 0]} current={current} />
-          <Wire start={[-3.2, -1.2, 0]} end={[-3.2, -0.6, 0]} current={current} />
+          <Wire start={[-3.6, 0.8, 0]} end={[-2.0, 0.8, 0]} current={totalCurrent} />
+          <Wire start={[-1.2, 0.8, 0]} end={[0.2, 0.8, 0]} current={totalCurrent} />
+          <Wire start={[0.2, 0.9, 0]} end={[0.2, -0.4, 0]} current={totalCurrent} />
+          <Wire start={[0.2, 0.9, 0]} end={[1.1, 0.9, 0]} current={totalCurrent / 2} />
+          <Wire start={[0.2, -0.4, 0]} end={[1.1, -0.4, 0]} current={totalCurrent / 2} />
+          <Wire start={[1.9, 0.9, 0]} end={[2.8, 0.9, 0]} current={totalCurrent / 2} />
+          <Wire start={[1.9, -0.4, 0]} end={[2.8, -0.4, 0]} current={totalCurrent / 2} />
+          <Wire start={[2.8, 0.9, 0]} end={[2.8, -0.4, 0]} current={totalCurrent} />
+          <Wire start={[2.8, -0.4, 0]} end={[2.8, -1.2, 0]} current={totalCurrent} />
+          <Wire start={[2.8, -1.2, 0]} end={[-3.6, -1.2, 0]} current={totalCurrent} />
+          <Wire start={[-3.6, -1.2, 0]} end={[-3.6, -0.6, 0]} current={totalCurrent} />
         </group>
       )}
 
-      {/* CIRCUIT CONFIGURATION 3: SINGLE BULB SIMPLE CIRCUIT */}
-      {!isSeries && !isParallel && (
+      {/* 3. MIXED 3 BULBS (1 Series + 2 Parallel) */}
+      {isMixed && (
+        <group>
+          {/* Series Bulb (Receives 2/3 of V) */}
+          <LightBulb
+            position={[0.2, 0.8, 0]}
+            voltageAcross={bulb1Voltage}
+            current={totalCurrent}
+            isBurnedOut={isBurnedOut}
+            scale={1.1}
+            label="Ana Kol (2V/3)"
+          />
+          {/* Parallel Bulb 1 */}
+          <LightBulb
+            position={[2.4, 1.0, 0]}
+            voltageAcross={bulb2Voltage}
+            current={totalCurrent / 2}
+            isBurnedOut={isBurnedOut}
+            scale={1.0}
+            label="Paralel 1 (V/3)"
+          />
+          {/* Parallel Bulb 2 */}
+          <LightBulb
+            position={[2.4, -0.3, 0]}
+            voltageAcross={bulb3Voltage}
+            current={totalCurrent / 2}
+            isBurnedOut={isBurnedOut}
+            scale={1.0}
+            label="Paralel 2 (V/3)"
+          />
+          <Wire start={[-3.6, 0.8, 0]} end={[-2.0, 0.8, 0]} current={totalCurrent} />
+          <Wire start={[-1.2, 0.8, 0]} end={[-0.2, 0.8, 0]} current={totalCurrent} />
+          <Wire start={[0.6, 0.8, 0]} end={[1.5, 0.8, 0]} current={totalCurrent} />
+          <Wire start={[1.5, 1.0, 0]} end={[1.5, -0.3, 0]} current={totalCurrent} />
+          <Wire start={[1.5, 1.0, 0]} end={[2.0, 1.0, 0]} current={totalCurrent / 2} />
+          <Wire start={[1.5, -0.3, 0]} end={[2.0, -0.3, 0]} current={totalCurrent / 2} />
+          <Wire start={[2.8, 1.0, 0]} end={[3.5, 1.0, 0]} current={totalCurrent / 2} />
+          <Wire start={[2.8, -0.3, 0]} end={[3.5, -0.3, 0]} current={totalCurrent / 2} />
+          <Wire start={[3.5, 1.0, 0]} end={[3.5, -0.3, 0]} current={totalCurrent} />
+          <Wire start={[3.5, -0.3, 0]} end={[3.5, -1.2, 0]} current={totalCurrent} />
+          <Wire start={[3.5, -1.2, 0]} end={[-3.6, -1.2, 0]} current={totalCurrent} />
+          <Wire start={[-3.6, -1.2, 0]} end={[-3.6, -0.6, 0]} current={totalCurrent} />
+        </group>
+      )}
+
+      {/* 4. RHEOSTAT / ADJUSTABLE DIMMER */}
+      {isRheostat && (
+        <group>
+          <Resistor
+            position={[0.2, 0.8, 0]}
+            resistance={rheostatResistance}
+            isRheostat={true}
+            scale={1.2}
+          />
+          <LightBulb
+            position={[2.5, 0.8, 0]}
+            voltageAcross={bulb1Voltage}
+            current={totalCurrent}
+            isBurnedOut={isBurnedOut}
+            scale={1.2}
+            label={`Ampul: ${bulb1Voltage.toFixed(1)}V`}
+          />
+          <Wire start={[-3.6, 0.8, 0]} end={[-2.0, 0.8, 0]} current={totalCurrent} />
+          <Wire start={[-1.2, 0.8, 0]} end={[-0.4, 0.8, 0]} current={totalCurrent} />
+          <Wire start={[0.8, 0.8, 0]} end={[2.1, 0.8, 0]} current={totalCurrent} />
+          <Wire start={[2.9, 0.8, 0]} end={[3.5, 0.8, 0]} current={totalCurrent} />
+          <Wire start={[3.5, 0.8, 0]} end={[3.5, -1.2, 0]} current={totalCurrent} />
+          <Wire start={[3.5, -1.2, 0]} end={[-3.6, -1.2, 0]} current={totalCurrent} />
+          <Wire start={[-3.6, -1.2, 0]} end={[-3.6, -0.6, 0]} current={totalCurrent} />
+        </group>
+      )}
+
+      {/* 5. SIMPLE CIRCUIT */}
+      {!isSeries && !isParallel && !isMixed && !isRheostat && (
         <group>
           <LightBulb
             position={[1.5, 0.8, 0]}
-            voltageAcross={bulbVoltage}
-            current={current}
+            voltageAcross={bulb1Voltage}
+            current={totalCurrent}
             isBurnedOut={isBurnedOut}
             scale={1.2}
             label="Ampul (Tekli)"
           />
-          <Wire start={[-3.2, 0.8, 0]} end={[-1.6, 0.8, 0]} current={current} />
-          <Wire start={[-0.8, 0.8, 0]} end={[1.1, 0.8, 0]} current={current} />
-          <Wire start={[1.9, 0.8, 0]} end={[3.0, 0.8, 0]} current={current} />
-          <Wire start={[3.0, 0.8, 0]} end={[3.0, -1.2, 0]} current={current} />
-          <Wire start={[3.0, -1.2, 0]} end={[-3.2, -1.2, 0]} current={current} />
-          <Wire start={[-3.2, -1.2, 0]} end={[-3.2, -0.6, 0]} current={current} />
+          <Wire start={[-3.6, 0.8, 0]} end={[-2.0, 0.8, 0]} current={totalCurrent} />
+          <Wire start={[-1.2, 0.8, 0]} end={[1.1, 0.8, 0]} current={totalCurrent} />
+          <Wire start={[1.9, 0.8, 0]} end={[3.0, 0.8, 0]} current={totalCurrent} />
+          <Wire start={[3.0, 0.8, 0]} end={[3.0, -1.2, 0]} current={totalCurrent} />
+          <Wire start={[3.0, -1.2, 0]} end={[-3.6, -1.2, 0]} current={totalCurrent} />
+          <Wire start={[-3.6, -1.2, 0]} end={[-3.6, -0.6, 0]} current={totalCurrent} />
         </group>
       )}
     </group>

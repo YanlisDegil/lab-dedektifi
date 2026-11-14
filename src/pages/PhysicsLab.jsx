@@ -10,7 +10,9 @@ import { CircuitScene } from '../components/physics/CircuitComponents'
 import {
   PendulumScene,
   WaveScene,
-  MagneticFieldScene,
+  EarthMagnetismScene,
+  SolarSystemMagnetismScene,
+  BarMagnetScene,
   ProjectileScene,
 } from '../components/physics/PhysicsSimulations'
 import {
@@ -20,14 +22,15 @@ import {
   FiRotateCcw,
   FiTarget,
   FiAlertTriangle,
+  FiGlobe,
 } from 'react-icons/fi'
-import { GiPendulumSwing, GiWaveSurfer, GiMagnet } from 'react-icons/gi'
+import { GiPendulumSwing, GiWaveSurfer, GiMagnet, GiSun } from 'react-icons/gi'
 
 const TABS = [
-  { id: 'circuit', label: 'Elektrik Devreleri (2 Ampul Seri/Paralel)', icon: FiZap },
-  { id: 'pendulum', label: 'Sarkaç & Mekanik', icon: GiPendulumSwing },
+  { id: 'circuit', label: 'Elektrik Devreleri (5 Farklı Devre)', icon: FiZap },
+  { id: 'pendulum', label: 'Sarkaç & Ağırlık Paneli', icon: GiPendulumSwing },
   { id: 'wave', label: 'Dalga Mekaniği', icon: GiWaveSurfer },
-  { id: 'magnet', label: 'Manyetizma & Pusula', icon: GiMagnet },
+  { id: 'magnet', label: 'Manyetizma (Dünya & Güneş Sistemi)', icon: GiMagnet },
   { id: 'projectile', label: 'Atış Hareketleri (200 Metre)', icon: FiTarget },
 ]
 
@@ -79,17 +82,15 @@ export default function PhysicsLab() {
 }
 
 // ============================================================
-// 1. CIRCUITS MODULE WITH 2 BULBS (SERIES & PARALLEL) + BURNOUT
+// 1. CIRCUITS MODULE WITH 5 CONFIGURATIONS & WARM WOOD TABLE
 // ============================================================
 function CircuitsModule() {
   const [circuitType, setCircuitType] = useState('series_2bulbs')
   const [voltage, setVoltage] = useState(9.0)
+  const [rheostatR, setRheostatR] = useState(40)
   const [switchOn, setSwitchOn] = useState(true)
   const [isBurnedOut, setIsBurnedOut] = useState(false)
 
-  // Overvoltage Burnout Check:
-  // If single or parallel: voltage > 15V burns the bulb!
-  // If series (2 bulbs): voltage > 26V (meaning > 13V per bulb) burns the bulbs!
   useEffect(() => {
     if (!switchOn) return
     const maxAllowedVoltage = circuitType === 'series_2bulbs' ? 26 : 15
@@ -104,20 +105,14 @@ function CircuitsModule() {
     setSwitchOn(true)
   }
 
-  // Electrical values
-  const bulbVoltage = !switchOn || isBurnedOut ? 0 : circuitType === 'series_2bulbs' ? voltage / 2 : voltage
-  const current = !switchOn || isBurnedOut ? 0 : circuitType === 'series_2bulbs' ? voltage / 20 : (voltage / 10) * 2
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      {/* 3D Circuit Canvas */}
       <div className="lg:col-span-2 glass rounded-2xl h-[530px] relative overflow-hidden flex flex-col">
-        {/* Burnout Warning Banner */}
         {isBurnedOut && (
           <div className="absolute top-4 left-4 right-4 z-20 bg-rose-950/95 border-2 border-rose-500 p-3 rounded-xl flex items-center justify-between text-white shadow-2xl animate-bounce-slow">
             <div className="flex items-center space-x-2 text-xs font-bold">
               <FiAlertTriangle className="text-xl text-rose-400" />
-              <span>DİKKAT: Gerilim çok yüksek! Ampulün filamanı aşırı akımdan eridi ve patladı!</span>
+              <span>DİKKAT: Gerilim çok yüksek! Ampul filamanı aşırı akımdan koptu ve patladı!</span>
             </div>
             <button
               onClick={handleResetCircuit}
@@ -129,7 +124,6 @@ function CircuitsModule() {
         )}
 
         <Canvas camera={{ position: [0, 3.2, 4.2], fov: 45 }} className="flex-1">
-          {/* BRIGHT STUDIO LIGHTING */}
           <ambientLight intensity={1.1} />
           <directionalLight position={[5, 10, 5]} intensity={1.6} />
           <pointLight position={[-4, 5, 2]} intensity={0.9} color="#ffffff" />
@@ -137,6 +131,7 @@ function CircuitsModule() {
             <CircuitScene
               circuitType={circuitType}
               voltage={voltage}
+              rheostatResistance={rheostatR}
               switchOn={switchOn}
               isBurnedOut={isBurnedOut}
               onToggleSwitch={() => setSwitchOn(!switchOn)}
@@ -145,7 +140,6 @@ function CircuitsModule() {
           <OrbitControls maxPolarAngle={Math.PI / 2.1} minDistance={3} maxDistance={9} />
         </Canvas>
 
-        {/* Live Gauges Bar */}
         <div className="p-4 bg-dark-900/95 border-t border-dark-800 grid grid-cols-3 gap-4 text-center">
           <div className="bg-dark-800/80 p-2 rounded-xl border border-dark-700">
             <div className="text-[10px] text-dark-400 font-bold">PİL GERİLİMİ</div>
@@ -154,15 +148,23 @@ function CircuitsModule() {
             </div>
           </div>
           <div className="bg-dark-800/80 p-2 rounded-xl border border-dark-700">
-            <div className="text-[10px] text-dark-400 font-bold">HER BİR AMPUL GERİLİMİ</div>
-            <div className="text-lg font-mono font-black text-physics">
-              {bulbVoltage.toFixed(1)} V
+            <div className="text-[10px] text-dark-400 font-bold">DEVRE TÜRÜ</div>
+            <div className="text-sm font-bold text-physics truncate mt-1">
+              {circuitType === 'series_2bulbs'
+                ? '2 Ampul Seri (V/2)'
+                : circuitType === 'parallel_2bulbs'
+                ? '2 Ampul Paralel (V)'
+                : circuitType === 'mixed_3bulbs'
+                ? '3 Ampul Karışık'
+                : circuitType === 'rheostat'
+                ? 'Reostalı Dimmer'
+                : 'Basit Devre (Tekli)'}
             </div>
           </div>
           <div className="bg-dark-800/80 p-2 rounded-xl border border-dark-700">
-            <div className="text-[10px] text-dark-400 font-bold">TOPLAM DEVRE AKIMI</div>
-            <div className="text-lg font-mono font-black text-emerald-400">
-              {(current * 1000).toFixed(0)} mA
+            <div className="text-[10px] text-dark-400 font-bold">ANAHTAR DURUMU</div>
+            <div className={`text-sm font-mono font-black mt-1 ${switchOn ? 'text-emerald-400' : 'text-rose-400'}`}>
+              {switchOn ? 'KAPALI (Akım Var)' : 'AÇIK (Akım Yok)'}
             </div>
           </div>
         </div>
@@ -170,29 +172,19 @@ function CircuitsModule() {
 
       {/* Control Panel */}
       <div className="space-y-4">
-        <div className="glass rounded-2xl p-5 space-y-4">
+        <div className="glass rounded-2xl p-5 space-y-3">
           <h3 className="text-sm font-bold text-white flex items-center space-x-2">
             <FiZap className="text-physics text-lg" />
-            <span>Devre Bağlantı Türü</span>
+            <span>Devre Seçenekleri</span>
           </h3>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
             {[
-              {
-                id: 'series_2bulbs',
-                name: 'Seri Bağlı Devre (2 Ampul)',
-                desc: 'Ampuller gerilimi paylaşır (V/2). Biri patlarsa devre kesilir!',
-              },
-              {
-                id: 'parallel_2bulbs',
-                name: 'Paralel Bağlı Devre (2 Ampul)',
-                desc: 'Her iki ampul de tam gerilim (V) alır ve eşit parlaklıkta yanar!',
-              },
-              {
-                id: 'simple',
-                name: 'Basit Devre (Tek Ampul)',
-                desc: '1 Pil, 1 Anahtar ve 1 Ampulden oluşan temel devre.',
-              },
+              { id: 'series_2bulbs', name: '1. İki Ampul Seri Bağlı', desc: 'Ampuller gerilimi eşit paylaşır (V/2).' },
+              { id: 'parallel_2bulbs', name: '2. İki Ampul Paralel Bağlı', desc: 'Her iki ampul de tam gerilimi (V) alır.' },
+              { id: 'mixed_3bulbs', name: '3. Üç Ampul Karışık Bağlı', desc: '1 ana kol seri + 2 paralel ampul.' },
+              { id: 'rheostat', name: '4. Reosta (Ayarlı Parlaklık)', desc: 'Direnci değiştirerek ampulün ışığını kısın/açın.' },
+              { id: 'simple', name: '5. Basit Devre (Tek Ampul)', desc: 'Temel 1 pil, 1 anahtar ve 1 ampul.' },
             ].map((conf) => (
               <button
                 key={conf.id}
@@ -200,17 +192,36 @@ function CircuitsModule() {
                   setCircuitType(conf.id)
                   setIsBurnedOut(false)
                 }}
-                className={`w-full text-left p-3 rounded-xl border text-xs transition-all ${
+                className={`w-full text-left p-2.5 rounded-xl border text-xs transition-all ${
                   circuitType === conf.id
                     ? 'border-physics bg-physics/20 text-white font-semibold'
                     : 'border-dark-700 bg-dark-900/60 text-dark-300 hover:bg-dark-800'
                 }`}
               >
-                <div className="font-bold text-sm mb-0.5 text-white">{conf.name}</div>
-                <div className="text-dark-400">{conf.desc}</div>
+                <div className="font-bold text-xs text-white">{conf.name}</div>
+                <div className="text-[11px] text-dark-400">{conf.desc}</div>
               </button>
             ))}
           </div>
+
+          {/* Rheostat Slider if selected */}
+          {circuitType === 'rheostat' && (
+            <div className="p-3 bg-dark-900 rounded-xl border border-dark-800">
+              <div className="flex justify-between text-xs text-dark-300 mb-1">
+                <span>Reosta Sürgüsü (Direnç):</span>
+                <span className="font-mono font-bold text-sky-400">{rheostatR} Ω</span>
+              </div>
+              <input
+                type="range"
+                min="5"
+                max="100"
+                step="5"
+                value={rheostatR}
+                onChange={(e) => setRheostatR(parseInt(e.target.value))}
+                className="w-full accent-sky-500"
+              />
+            </div>
+          )}
 
           {/* Voltage Slider */}
           <div className="pt-2 border-t border-dark-800">
@@ -227,14 +238,8 @@ function CircuitsModule() {
               onChange={(e) => setVoltage(parseFloat(e.target.value))}
               className="w-full accent-blue-500"
             />
-            <div className="text-[10px] text-dark-400 mt-1 flex justify-between">
-              <span>1.5V</span>
-              <span>12V (Nominal)</span>
-              <span className="text-rose-400 font-bold">&gt;15V (Aşırı Gerilim!)</span>
-            </div>
           </div>
 
-          {/* Switch Toggle */}
           <button
             onClick={() => setSwitchOn(!switchOn)}
             className={`w-full py-2.5 rounded-xl text-xs font-bold transition-all ${
@@ -262,11 +267,11 @@ function CircuitsModule() {
 }
 
 // ============================================================
-// 2. PENDULUM MODULE
+// 2. PENDULUM MODULE WITH DEDICATED BOB MASS PANEL
 // ============================================================
 function PendulumModule() {
   const [length, setLength] = useState(2.0)
-  const [mass, setMass] = useState(1.0)
+  const [mass, setMass] = useState(1.0) // kg
   const [angle0Deg, setAngle0Deg] = useState(30)
   const [gravity, setGravity] = useState(9.81)
   const [isPlaying, setIsPlaying] = useState(true)
@@ -308,44 +313,90 @@ function PendulumModule() {
             </div>
           </div>
           <div className="bg-dark-800/80 p-2.5 rounded-xl border border-dark-700">
-            <div className="text-[10px] text-dark-400">MAKS. HIZ</div>
+            <div className="text-[10px] text-dark-400">KÜTLE / AĞIRLIK</div>
             <div className="text-lg font-mono font-black text-amber-400">
-              {pendulumData.vMax.toFixed(2)} m/s
+              {mass.toFixed(1)} kg
             </div>
           </div>
         </div>
       </div>
 
-      <div className="glass rounded-2xl p-5 space-y-4">
-        <div className="flex justify-between items-center">
-          <h3 className="text-sm font-bold text-white">Sarkaç Ayarları</h3>
-          <button
-            onClick={() => setIsPlaying(!isPlaying)}
-            className="p-2 rounded-lg bg-dark-800 hover:bg-dark-700 text-physics text-base"
-          >
-            {isPlaying ? <FiPause /> : <FiPlay />}
-          </button>
-        </div>
+      {/* Control Panel with Dedicated Weight/Mass Panel */}
+      <div className="space-y-4">
+        {/* Weight Selector */}
+        <div className="glass rounded-2xl p-5 space-y-3">
+          <h3 className="text-sm font-bold text-white flex items-center justify-between">
+            <span>Sarkaç Topu Ağırlığı (Kütle)</span>
+            <span className="font-mono text-amber-400 font-black">{mass.toFixed(1)} kg</span>
+          </h3>
 
-        <div>
-          <div className="flex justify-between text-xs text-dark-300 mb-1">
-            <span>İp Boyu (L):</span>
-            <span className="font-mono font-bold text-white">{length.toFixed(1)} m</span>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { m: 0.2, label: '0.2 kg (Ahşap Top)' },
+              { m: 1.0, label: '1.0 kg (Standart Çelik)' },
+              { m: 2.5, label: '2.5 kg (Ağır Pirinç)' },
+              { m: 5.0, label: '5.0 kg (Süper Ağır Kurşun)' },
+            ].map((item) => (
+              <button
+                key={item.m}
+                onClick={() => setMass(item.m)}
+                className={`p-2 rounded-xl text-xs font-semibold transition-all text-left ${
+                  mass === item.m
+                    ? 'bg-amber-500 text-dark-950 font-black'
+                    : 'bg-dark-800 text-dark-300 hover:bg-dark-700'
+                }`}
+              >
+                {item.label}
+              </button>
+            ))}
           </div>
-          <input
-            type="range"
-            min="0.5"
-            max="3.0"
-            step="0.1"
-            value={length}
-            onChange={(e) => setLength(parseFloat(e.target.value))}
-            className="w-full accent-blue-500"
-          />
+
+          <div>
+            <div className="flex justify-between text-xs text-dark-400 mb-1">
+              <span>Hassas Kütle Sürgüsü:</span>
+              <span className="font-mono text-white">{mass.toFixed(1)} kg</span>
+            </div>
+            <input
+              type="range"
+              min="0.1"
+              max="10.0"
+              step="0.1"
+              value={mass}
+              onChange={(e) => setMass(parseFloat(e.target.value))}
+              className="w-full accent-amber-500"
+            />
+          </div>
         </div>
 
-        <div>
-          <span className="text-xs text-dark-300 block mb-2">Gezegen Yerçekimi (g):</span>
-          <div className="grid grid-cols-2 gap-1.5">
+        {/* Length & Planet */}
+        <div className="glass rounded-2xl p-5 space-y-3">
+          <div className="flex justify-between items-center">
+            <h4 className="text-xs uppercase font-bold text-physics">İp Boyu ve Gezegen</h4>
+            <button
+              onClick={() => setIsPlaying(!isPlaying)}
+              className="p-1.5 rounded-lg bg-dark-800 hover:bg-dark-700 text-physics text-sm"
+            >
+              {isPlaying ? <FiPause /> : <FiPlay />}
+            </button>
+          </div>
+
+          <div>
+            <div className="flex justify-between text-xs text-dark-300 mb-1">
+              <span>İp Boyu (L):</span>
+              <span className="font-mono font-bold text-white">{length.toFixed(1)} m</span>
+            </div>
+            <input
+              type="range"
+              min="0.5"
+              max="3.0"
+              step="0.1"
+              value={length}
+              onChange={(e) => setLength(parseFloat(e.target.value))}
+              className="w-full accent-blue-500"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-1.5 pt-1">
             {PLANET_GRAVITY.map((p) => (
               <button
                 key={p.name}
@@ -447,55 +498,114 @@ function WaveModule() {
 }
 
 // ============================================================
-// 4. MAGNETISM MODULE
+// 4. MAGNETISM: EARTH GLOBE, SOLAR SYSTEM & BAR MAGNET
 // ============================================================
 function MagnetismModule() {
-  const [showLines, setShowLines] = useState(true)
+  const [magnetMode, setMagnetMode] = useState('earth') // 'earth', 'solar', 'bar'
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2 glass rounded-2xl h-[530px] relative overflow-hidden flex flex-col">
-        <Canvas camera={{ position: [0, 0, 5.0], fov: 45 }} className="flex-1">
+        {/* Mode Title Badge */}
+        <div className="absolute top-4 left-4 z-10 bg-dark-900/90 backdrop-blur px-3 py-1.5 rounded-lg border border-dark-700 text-xs text-white">
+          Görünüm:{' '}
+          <span className="text-physics font-bold">
+            {magnetMode === 'earth'
+              ? "Dünya'nın Manyetik Alanı (Manyetosfer & Kutup Işıkları)"
+              : magnetMode === 'solar'
+              ? 'Güneş Sistemi & Güneş Rüzgarı Kalkanı'
+              : 'Laboratuvar Çubuk Mıknatısı'}
+          </span>
+        </div>
+
+        <Canvas camera={{ position: [0, 0, 6.0], fov: 45 }} className="flex-1">
           <ambientLight intensity={1.1} />
-          <directionalLight position={[5, 10, 5]} intensity={1.8} />
-          <pointLight position={[-5, -5, -5]} intensity={0.6} />
+          <directionalLight position={[6, 10, 6]} intensity={1.8} />
+          <pointLight position={[-6, -6, -2]} intensity={0.6} />
+          <Stars radius={60} depth={25} count={800} factor={4} />
           <Suspense fallback={null}>
-            <MagneticFieldScene showFieldLines={showLines} />
+            {magnetMode === 'earth' && <EarthMagnetismScene />}
+            {magnetMode === 'solar' && <SolarSystemMagnetismScene />}
+            {magnetMode === 'bar' && <BarMagnetScene />}
           </Suspense>
-          <OrbitControls autoRotate autoRotateSpeed={0.4} />
+          <OrbitControls autoRotate={magnetMode !== 'bar'} autoRotateSpeed={0.5} />
         </Canvas>
 
-        <div className="p-3 bg-dark-900/90 border-t border-dark-800 flex items-center justify-between">
-          <span className="text-xs text-dark-300">
-            Mıknatıs döndürüldüğünde harfler arkasından görünmez, 3D yüzeyinde kalır.
-          </span>
-          <button
-            onClick={() => setShowLines(!showLines)}
-            className="btn-physics text-xs px-3 py-1.5"
-          >
-            {showLines ? 'Alan Çizgilerini Gizle' : 'Alan Çizgilerini Göster'}
-          </button>
+        {/* Mode Switcher Buttons */}
+        <div className="p-3 bg-dark-900/90 border-t border-dark-800 flex items-center justify-center space-x-2">
+          {[
+            { id: 'earth', label: "🌍 Dünya'nın Manyetik Alanı", icon: FiGlobe },
+            { id: 'solar', label: '☀️ Güneş Sistemi Manyetosferi', icon: GiSun },
+            { id: 'bar', label: '🧲 Laboratuvar Mıknatısı', icon: GiMagnet },
+          ].map((m) => (
+            <button
+              key={m.id}
+              onClick={() => setMagnetMode(m.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${
+                magnetMode === m.id
+                  ? 'bg-physics text-white font-bold shadow-lg shadow-physics/20'
+                  : 'bg-dark-800 text-dark-300 hover:text-white'
+              }`}
+            >
+              <span>{m.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
+      {/* Encyclopedia details */}
       <div className="glass rounded-2xl p-5 space-y-3">
-        <h3 className="text-sm font-bold text-white flex items-center space-x-2">
-          <GiMagnet className="text-physics text-lg" />
-          <span>Manyetizma ve Pusulalar</span>
-        </h3>
-        <p className="text-xs text-dark-300 leading-relaxed">
-          Pusulaların kırmızı ucu mıknatısın mavi (S) kutbuna, mavi ucu ise kırmızı (N) kutbuna doğru yönelir. Çizgiler N kutbundan dışarı çıkarak S kutbuna dalar.
-        </p>
+        {magnetMode === 'earth' && (
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+              <FiGlobe className="text-physics text-lg" />
+              <span>Dünya'nın Manyetosferi</span>
+            </h3>
+            <p className="text-xs text-dark-300 leading-relaxed">
+              Dünya'nın dış çekirdeğindeki erimiş demir ve nikelin konveksiyon hareketleri devasa bir jeodinamo oluşturur. Bu alan gezegenimizi Güneş'in öldürücü yüklü parçacıklarından koruyan dev bir manyetik kalkan gibidir.
+            </p>
+            <div className="p-3 bg-dark-900/60 rounded-xl border border-dark-800 space-y-1.5 text-xs">
+              <div className="text-emerald-400 font-bold">Kutup Işıkları (Aurora):</div>
+              <div className="text-dark-300 leading-relaxed">
+                Güneş rüzgarı parçacıkları kutup bölgelerinde Dünya'nın manyetik alan çizgileri boyunca atmosferdeki oksijen ve azot atomlarıyla çarpışarak kuzey ve güney kutuplarında yeşil-mor auroraları oluşturur!
+              </div>
+            </div>
+          </div>
+        )}
+
+        {magnetMode === 'solar' && (
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+              <GiSun className="text-amber-400 text-lg" />
+              <span>Güneş Sistemi & Güneş Rüzgarı</span>
+            </h3>
+            <p className="text-xs text-dark-300 leading-relaxed">
+              Güneş'in koronası uzaya saniyede 400-800 km hızla plazma (güneş rüzgarı) fırlatır. Dünya'nın manyetosferi bu rüzgara karşı bir burun dalgası (bow shock) oluşturarak rüzgarı Dünya'nın etrafından saptırır.
+            </p>
+          </div>
+        )}
+
+        {magnetMode === 'bar' && (
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold text-white flex items-center space-x-2">
+              <GiMagnet className="text-physics text-lg" />
+              <span>Çubuk Mıknatıs Alanı</span>
+            </h3>
+            <p className="text-xs text-dark-300 leading-relaxed">
+              Manyetik alan çizgileri N kutbundan çıkıp S kutbuna dalar. Çizgiler birbirini asla kesmez ve kutuplara yaklaştıkça yoğunlaşır.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
 // ============================================================
-// 5. PROJECTILE MODULE (UP TO 200 METERS WITH CLEAR LABELS)
+// 5. PROJECTILE MODULE (0 - 200m)
 // ============================================================
 function ProjectileModule() {
-  const [v0, setV0] = useState(35) // m/s
+  const [v0, setV0] = useState(35)
   const [angleDeg, setAngleDeg] = useState(45)
   const [gravity, setGravity] = useState(9.81)
   const [isFired, setIsFired] = useState(false)
@@ -537,7 +647,6 @@ function ProjectileModule() {
           <OrbitControls />
         </Canvas>
 
-        {/* Live Metrics */}
         <div className="p-4 bg-dark-900/95 border-t border-dark-800 grid grid-cols-3 gap-3 text-center">
           <div className="bg-dark-800/80 p-2 rounded-xl border border-dark-700">
             <div className="text-[10px] text-dark-400">MAKSİMUM YÜKSEKLİK</div>
@@ -560,7 +669,6 @@ function ProjectileModule() {
         </div>
       </div>
 
-      {/* Control Panel */}
       <div className="space-y-4">
         <div className="glass rounded-2xl p-5 space-y-4">
           <h3 className="text-sm font-bold text-white">Atış Kontrolleri (0 - 200m)</h3>

@@ -701,18 +701,18 @@ function TitrationModule() {
 // 4. PERIODIC TABLE MODULE - EXACT BOHR MODEL FOR ALL ELEMENTS
 // ============================================================
 function PeriodicTableModule() {
-  const [selectedAtomicNumber, setSelectedAtomicNumber] = useState(1) // Starts at Hydrogen
+  const [selectedAtomicNumber, setSelectedAtomicNumber] = useState(1) // Starts at Hydrogen (z: 1)
   const [filterCategory, setFilterCategory] = useState('all')
 
   const selectedElement = useMemo(
-    () => elements.find((e) => e.number === selectedAtomicNumber) || elements[0],
+    () => elements.find((e) => e.z === selectedAtomicNumber) || elements[0],
     [selectedAtomicNumber]
   )
 
   // Real electron distribution across shells
   const shells = useMemo(
-    () => getElectronShells(selectedAtomicNumber),
-    [selectedAtomicNumber]
+    () => getElectronShells(selectedElement.z),
+    [selectedElement]
   )
 
   const categoryColor = useMemo(() => {
@@ -726,7 +726,7 @@ function PeriodicTableModule() {
         <div className="absolute top-4 left-4 z-10 bg-dark-900/90 backdrop-blur px-3 py-1.5 rounded-lg border border-dark-700">
           <span className="text-xs text-dark-400">3D Bohr Atom Modeli: </span>
           <span className="text-sm font-bold text-white">
-            {selectedElement.name} ({selectedElement.symbol})
+            {selectedElement.name} ({selectedElement.symbol} - Atom No: {selectedElement.z})
           </span>
         </div>
 
@@ -737,7 +737,7 @@ function PeriodicTableModule() {
           <Stars radius={50} depth={20} count={600} factor={3} />
           <Suspense fallback={null}>
             <BohrAtom
-              atomicNumber={selectedElement.number}
+              atomicNumber={selectedElement.z}
               symbol={selectedElement.symbol}
               name={selectedElement.name}
               shells={shells}
@@ -765,7 +765,7 @@ function PeriodicTableModule() {
           <div className="grid grid-cols-3 gap-2 text-[11px] pt-1">
             <div className="bg-dark-800 p-2 rounded-lg">
               <span className="text-dark-400 block">Proton / Elektron:</span>
-              <span className="text-white font-mono font-bold">{selectedElement.number}</span>
+              <span className="text-white font-mono font-bold">{selectedElement.z}</span>
             </div>
             <div className="bg-dark-800 p-2 rounded-lg">
               <span className="text-dark-400 block">Kütle No:</span>
@@ -817,12 +817,12 @@ function PeriodicTableModule() {
           {elements
             .filter((el) => filterCategory === 'all' || el.category === filterCategory)
             .map((el) => {
-              const isSelected = el.number === selectedAtomicNumber
+              const isSelected = el.z === selectedAtomicNumber
               const col = elementCategories[el.category]?.color || '#64748b'
               return (
                 <button
-                  key={el.number}
-                  onClick={() => setSelectedAtomicNumber(el.number)}
+                  key={el.z}
+                  onClick={() => setSelectedAtomicNumber(el.z)}
                   className={`p-2 rounded-xl border text-center transition-all ${
                     isSelected
                       ? 'border-white ring-2 ring-white/50 bg-dark-800 scale-105 z-10'
@@ -832,7 +832,7 @@ function PeriodicTableModule() {
                     boxShadow: isSelected ? `0 0 12px ${col}88` : 'none',
                   }}
                 >
-                  <div className="text-[9px] text-dark-400">{el.number}</div>
+                  <div className="text-[9px] text-dark-400 font-mono">{el.z}</div>
                   <div
                     className="text-base font-black my-0.5"
                     style={{ color: col }}
