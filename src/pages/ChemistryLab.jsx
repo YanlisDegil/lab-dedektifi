@@ -150,7 +150,7 @@ function ReactionsModule() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
       {/* 3D Scene */}
-      <div className="lg:col-span-2 glass rounded-2xl h-[530px] relative overflow-hidden flex flex-col">
+      <div className="lg:col-span-2 glass rounded-2xl h-[320px] sm:h-[420px] lg:h-[530px] relative overflow-hidden flex flex-col">
         <div className="absolute top-4 left-4 z-10 bg-dark-900/90 backdrop-blur px-3 py-1.5 rounded-lg border border-dark-700 text-xs text-dark-300">
           Tepkime: <span className="text-chemistry font-bold">{currentReaction.name}</span>
         </div>
@@ -346,7 +346,7 @@ function PHModule() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* 3D Simulation */}
-      <div className="lg:col-span-2 glass rounded-2xl h-[530px] relative overflow-hidden flex flex-col">
+      <div className="lg:col-span-2 glass rounded-2xl h-[320px] sm:h-[420px] lg:h-[530px] relative overflow-hidden flex flex-col">
         {/* HUD Info Badge */}
         <div className="absolute top-4 left-4 z-10 flex items-center space-x-2 bg-dark-900/90 backdrop-blur px-3 py-1.5 rounded-lg border border-dark-700">
           <div
@@ -551,7 +551,7 @@ function TitrationModule() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* 3D Scene */}
-      <div className="lg:col-span-2 glass rounded-2xl h-[530px] relative overflow-hidden flex flex-col">
+      <div className="lg:col-span-2 glass rounded-2xl h-[320px] sm:h-[420px] lg:h-[530px] relative overflow-hidden flex flex-col">
         <div className="absolute top-4 left-4 z-10 bg-dark-900/90 backdrop-blur px-3 py-1.5 rounded-lg border border-dark-700 text-xs text-white">
           Büret: <span className="text-purple-400 font-bold">0.1M NaOH</span> | Erlenmayer:{' '}
           <span className="text-sky-400 font-bold">0.1M HCl (25 mL)</span>
@@ -722,7 +722,7 @@ function PeriodicTableModule() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
       {/* 3D Atom Viewer */}
-      <div className="lg:col-span-5 glass rounded-2xl h-[560px] relative overflow-hidden flex flex-col">
+      <div className="lg:col-span-5 glass rounded-2xl h-[340px] sm:h-[440px] lg:h-[560px] relative overflow-hidden flex flex-col">
         <div className="absolute top-4 left-4 z-10 bg-dark-900/90 backdrop-blur px-3 py-1.5 rounded-lg border border-dark-700">
           <span className="text-xs text-dark-400">3D Bohr Atom Modeli: </span>
           <span className="text-sm font-bold text-white">
@@ -780,7 +780,7 @@ function PeriodicTableModule() {
       </div>
 
       {/* Periodic Table Grid */}
-      <div className="lg:col-span-7 glass rounded-2xl p-5 flex flex-col h-[560px]">
+      <div className="lg:col-span-7 glass rounded-2xl p-4 sm:p-5 flex flex-col h-[400px] sm:h-[480px] lg:h-[560px]">
         {/* Category Filters */}
         <div className="flex items-center space-x-1.5 overflow-x-auto pb-3 mb-2 border-b border-dark-800 text-xs">
           <button

@@ -89,7 +89,7 @@ function AnimalCellModule() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 glass rounded-2xl h-[540px] relative overflow-hidden flex flex-col">
+      <div className="lg:col-span-2 glass rounded-2xl h-[320px] sm:h-[420px] lg:h-[540px] relative overflow-hidden flex flex-col">
         <div className="absolute top-4 left-4 z-10 bg-dark-900/90 backdrop-blur px-3 py-1.5 rounded-lg border border-dark-700 text-xs text-white">
           İncelemek istediğiniz organele 3D sahne üzerinden tıklayın
         </div>
@@ -204,7 +204,7 @@ function PlantCellModule() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 glass rounded-2xl h-[540px] relative overflow-hidden flex flex-col">
+      <div className="lg:col-span-2 glass rounded-2xl h-[320px] sm:h-[420px] lg:h-[540px] relative overflow-hidden flex flex-col">
         <Canvas camera={{ position: [0, 0, 6.2], fov: 45 }} className="flex-1">
           <ambientLight intensity={1.1} />
           <directionalLight position={[6, 10, 6]} intensity={1.6} />
@@ -291,7 +291,7 @@ function PlantCellModule() {
 function NucleusDetailModule() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 glass rounded-2xl h-[540px] relative overflow-hidden flex flex-col">
+      <div className="lg:col-span-2 glass rounded-2xl h-[320px] sm:h-[420px] lg:h-[540px] relative overflow-hidden flex flex-col">
         <Canvas camera={{ position: [0, 0, 4.6], fov: 45 }} className="flex-1">
           <ambientLight intensity={1.1} />
           <directionalLight position={[5, 10, 5]} intensity={1.6} />
@@ -334,7 +334,7 @@ function DNAModule() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 glass rounded-2xl h-[540px] relative overflow-hidden flex flex-col">
+      <div className="lg:col-span-2 glass rounded-2xl h-[320px] sm:h-[420px] lg:h-[540px] relative overflow-hidden flex flex-col">
         <Canvas camera={{ position: [0, 0, 5.2], fov: 45 }} className="flex-1">
           <ambientLight intensity={1.1} />
           <directionalLight position={[5, 10, 5]} intensity={1.6} />
@@ -439,7 +439,7 @@ function MitosisModule() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 glass rounded-2xl h-[540px] relative overflow-hidden flex flex-col">
+      <div className="lg:col-span-2 glass rounded-2xl h-[320px] sm:h-[420px] lg:h-[540px] relative overflow-hidden flex flex-col">
         {/* Status Badge */}
         <div className="absolute top-4 left-4 z-10 bg-dark-900/90 backdrop-blur px-3 py-1.5 rounded-lg border border-dark-700 text-xs text-white">
           Aktif Durum: <span className="text-biology font-bold">{currentStageName}</span> (Toplam:{' '}

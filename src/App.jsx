@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { Suspense, lazy } from 'react'
 import Navbar from './components/layout/Navbar'
 import LoadingScreen from './components/ui/LoadingScreen'
@@ -10,16 +10,24 @@ const BiologyLab = lazy(() => import('./pages/BiologyLab'))
 
 function App() {
   return (
-    <div className="min-h-screen bg-dark-950 text-dark-50">
+    <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col">
       <Navbar />
-      <Suspense fallback={<LoadingScreen />}>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/kimya/*" element={<ChemistryLab />} />
-          <Route path="/fizik/*" element={<PhysicsLab />} />
-          <Route path="/biyoloji/*" element={<BiologyLab />} />
-        </Routes>
-      </Suspense>
+      <main className="flex-1 flex flex-col">
+        <Suspense fallback={<LoadingScreen />}>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            {/* Turkish & English route aliases */}
+            <Route path="/kimya/*" element={<ChemistryLab />} />
+            <Route path="/chemistry/*" element={<Navigate to="/kimya" replace />} />
+            <Route path="/fizik/*" element={<PhysicsLab />} />
+            <Route path="/physics/*" element={<Navigate to="/fizik" replace />} />
+            <Route path="/biyoloji/*" element={<BiologyLab />} />
+            <Route path="/biology/*" element={<Navigate to="/biyoloji" replace />} />
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Suspense>
+      </main>
     </div>
   )
 }

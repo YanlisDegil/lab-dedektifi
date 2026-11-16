@@ -107,7 +107,7 @@ function CircuitsModule() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 glass rounded-2xl h-[530px] relative overflow-hidden flex flex-col">
+      <div className="lg:col-span-2 glass rounded-2xl h-[320px] sm:h-[420px] lg:h-[530px] relative overflow-hidden flex flex-col">
         {isBurnedOut && (
           <div className="absolute top-4 left-4 right-4 z-20 bg-rose-950/95 border-2 border-rose-500 p-3 rounded-xl flex items-center justify-between text-white shadow-2xl animate-bounce-slow">
             <div className="flex items-center space-x-2 text-xs font-bold">
@@ -283,7 +283,7 @@ function PendulumModule() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 glass rounded-2xl h-[530px] relative overflow-hidden flex flex-col">
+      <div className="lg:col-span-2 glass rounded-2xl h-[320px] sm:h-[420px] lg:h-[530px] relative overflow-hidden flex flex-col">
         <Canvas camera={{ position: [0, 0, 4.8], fov: 45 }} className="flex-1">
           <ambientLight intensity={1.1} />
           <directionalLight position={[5, 10, 5]} intensity={1.5} />
@@ -428,7 +428,7 @@ function WaveModule() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 glass rounded-2xl h-[530px] relative overflow-hidden flex flex-col">
+      <div className="lg:col-span-2 glass rounded-2xl h-[320px] sm:h-[420px] lg:h-[530px] relative overflow-hidden flex flex-col">
         <Canvas camera={{ position: [0, 0, 5.2], fov: 45 }} className="flex-1">
           <ambientLight intensity={1.1} />
           <directionalLight position={[5, 10, 5]} intensity={1.5} />
@@ -505,7 +505,7 @@ function MagnetismModule() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 glass rounded-2xl h-[530px] relative overflow-hidden flex flex-col">
+      <div className="lg:col-span-2 glass rounded-2xl h-[320px] sm:h-[420px] lg:h-[530px] relative overflow-hidden flex flex-col">
         {/* Mode Title Badge */}
         <div className="absolute top-4 left-4 z-10 bg-dark-900/90 backdrop-blur px-3 py-1.5 rounded-lg border border-dark-700 text-xs text-white">
           Görünüm:{' '}
@@ -631,7 +631,7 @@ function ProjectileModule() {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div className="lg:col-span-2 glass rounded-2xl h-[530px] relative overflow-hidden flex flex-col">
+      <div className="lg:col-span-2 glass rounded-2xl h-[320px] sm:h-[420px] lg:h-[530px] relative overflow-hidden flex flex-col">
         <Canvas camera={{ position: [3, 0, 9.5], fov: 45 }} className="flex-1">
           <ambientLight intensity={1.1} />
           <directionalLight position={[5, 12, 5]} intensity={1.6} />
