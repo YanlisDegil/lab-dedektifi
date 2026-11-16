@@ -703,6 +703,21 @@ function TitrationModule() {
 function PeriodicTableModule() {
   const [selectedAtomicNumber, setSelectedAtomicNumber] = useState(1) // Starts at Hydrogen (z: 1)
   const [filterCategory, setFilterCategory] = useState('all')
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const filteredElements = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    return elements.filter((el) => {
+      const matchCat = filterCategory === 'all' || el.category === filterCategory
+      if (!matchCat) return false
+      if (!q) return true
+      return (
+        el.symbol.toLowerCase().includes(q) ||
+        el.name.toLowerCase().includes(q) ||
+        el.z.toString() === q
+      )
+    })
+  }, [filterCategory, searchQuery])
 
   const selectedElement = useMemo(
     () => elements.find((e) => e.z === selectedAtomicNumber) || elements[0],
@@ -781,6 +796,28 @@ function PeriodicTableModule() {
 
       {/* Periodic Table Grid */}
       <div className="lg:col-span-7 glass rounded-2xl p-4 sm:p-5 flex flex-col h-[400px] sm:h-[480px] lg:h-[560px]">
+        {/* Search Bar & Stats */}
+        <div className="flex items-center space-x-2 mb-2.5">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Element ara (Örn: Fe, Demir, 26)..."
+            className="flex-1 bg-dark-900 border border-dark-700 text-white rounded-xl px-3 py-1.5 text-xs focus:border-chemistry focus:ring-1 focus:ring-chemistry placeholder:text-dark-400"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="text-xs text-dark-400 hover:text-white px-2 py-1 rounded bg-dark-800"
+            >
+              Temizle
+            </button>
+          )}
+          <span className="text-[11px] text-dark-400 whitespace-nowrap">
+            {filteredElements.length} element
+          </span>
+        </div>
+
         {/* Category Filters */}
         <div className="flex items-center space-x-1.5 overflow-x-auto pb-3 mb-2 border-b border-dark-800 text-xs">
           <button
@@ -791,7 +828,7 @@ function PeriodicTableModule() {
                 : 'text-dark-300 hover:bg-dark-800'
             }`}
           >
-            Tümü (118 Element)
+            Tümü
           </button>
           {Object.entries(elementCategories).map(([key, cat]) => (
             <button
@@ -814,35 +851,33 @@ function PeriodicTableModule() {
 
         {/* Element Cards Grid */}
         <div className="flex-1 overflow-y-auto pr-1 grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-1.5 content-start">
-          {elements
-            .filter((el) => filterCategory === 'all' || el.category === filterCategory)
-            .map((el) => {
-              const isSelected = el.z === selectedAtomicNumber
-              const col = elementCategories[el.category]?.color || '#64748b'
-              return (
-                <button
-                  key={el.z}
-                  onClick={() => setSelectedAtomicNumber(el.z)}
-                  className={`p-2 rounded-xl border text-center transition-all ${
-                    isSelected
-                      ? 'border-white ring-2 ring-white/50 bg-dark-800 scale-105 z-10'
-                      : 'border-dark-700/60 bg-dark-900/60 hover:bg-dark-800 hover:border-dark-500'
-                  }`}
-                  style={{
-                    boxShadow: isSelected ? `0 0 12px ${col}88` : 'none',
-                  }}
+          {filteredElements.map((el) => {
+            const isSelected = el.z === selectedAtomicNumber
+            const col = elementCategories[el.category]?.color || '#64748b'
+            return (
+              <button
+                key={el.z}
+                onClick={() => setSelectedAtomicNumber(el.z)}
+                className={`p-2 rounded-xl border text-center transition-all ${
+                  isSelected
+                    ? 'border-white ring-2 ring-white/50 bg-dark-800 scale-105 z-10'
+                    : 'border-dark-700/60 bg-dark-900/60 hover:bg-dark-800 hover:border-dark-500'
+                }`}
+                style={{
+                  boxShadow: isSelected ? `0 0 12px ${col}88` : 'none',
+                }}
+              >
+                <div className="text-[9px] text-dark-400 font-mono">{el.z}</div>
+                <div
+                  className="text-base font-black my-0.5"
+                  style={{ color: col }}
                 >
-                  <div className="text-[9px] text-dark-400 font-mono">{el.z}</div>
-                  <div
-                    className="text-base font-black my-0.5"
-                    style={{ color: col }}
-                  >
-                    {el.symbol}
-                  </div>
-                  <div className="text-[9px] text-dark-300 truncate">{el.name}</div>
-                </button>
-              )
-            })}
+                  {el.symbol}
+                </div>
+                <div className="text-[9px] text-dark-300 truncate">{el.name}</div>
+              </button>
+            )
+          })}
         </div>
       </div>
     </div>

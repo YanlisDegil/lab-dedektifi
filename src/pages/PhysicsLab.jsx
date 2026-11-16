@@ -140,30 +140,30 @@ function CircuitsModule() {
           <OrbitControls maxPolarAngle={Math.PI / 2.1} minDistance={3} maxDistance={9} />
         </Canvas>
 
-        <div className="p-4 bg-dark-900/95 border-t border-dark-800 grid grid-cols-3 gap-4 text-center">
-          <div className="bg-dark-800/80 p-2 rounded-xl border border-dark-700">
-            <div className="text-[10px] text-dark-400 font-bold">PİL GERİLİMİ</div>
-            <div className="text-lg font-mono font-black text-amber-400">
+        <div className="p-3 sm:p-4 bg-dark-900/95 border-t border-dark-800 grid grid-cols-3 gap-2 sm:gap-4 text-center">
+          <div className="bg-dark-800/80 p-2 sm:p-2.5 rounded-xl border border-dark-700">
+            <div className="text-[9px] sm:text-[10px] text-dark-400 font-bold truncate">PİL GERİLİMİ</div>
+            <div className="text-sm sm:text-lg font-mono font-black text-amber-400">
               {voltage.toFixed(1)} V
             </div>
           </div>
-          <div className="bg-dark-800/80 p-2 rounded-xl border border-dark-700">
-            <div className="text-[10px] text-dark-400 font-bold">DEVRE TÜRÜ</div>
-            <div className="text-sm font-bold text-physics truncate mt-1">
+          <div className="bg-dark-800/80 p-2 sm:p-2.5 rounded-xl border border-dark-700">
+            <div className="text-[9px] sm:text-[10px] text-dark-400 font-bold truncate">DEVRE TÜRÜ</div>
+            <div className="text-xs sm:text-sm font-bold text-physics truncate mt-0.5 sm:mt-1">
               {circuitType === 'series_2bulbs'
-                ? '2 Ampul Seri (V/2)'
+                ? '2 Ampul Seri'
                 : circuitType === 'parallel_2bulbs'
-                ? '2 Ampul Paralel (V)'
+                ? '2 Ampul Paralel'
                 : circuitType === 'mixed_3bulbs'
                 ? '3 Ampul Karışık'
                 : circuitType === 'rheostat'
                 ? 'Reostalı Dimmer'
-                : 'Basit Devre (Tekli)'}
+                : 'Tek Ampul'}
             </div>
           </div>
-          <div className="bg-dark-800/80 p-2 rounded-xl border border-dark-700">
-            <div className="text-[10px] text-dark-400 font-bold">ANAHTAR DURUMU</div>
-            <div className={`text-sm font-mono font-black mt-1 ${switchOn ? 'text-emerald-400' : 'text-rose-400'}`}>
+          <div className="bg-dark-800/80 p-2 sm:p-2.5 rounded-xl border border-dark-700">
+            <div className="text-[9px] sm:text-[10px] text-dark-400 font-bold truncate">ANAHTAR</div>
+            <div className={`text-xs sm:text-sm font-mono font-black mt-0.5 sm:mt-1 truncate ${switchOn ? 'text-emerald-400' : 'text-rose-400'}`}>
               {switchOn ? 'KAPALI (Akım Var)' : 'AÇIK (Akım Yok)'}
             </div>
           </div>
@@ -299,22 +299,22 @@ function PendulumModule() {
           <OrbitControls />
         </Canvas>
 
-        <div className="p-4 bg-dark-900/95 border-t border-dark-800 grid grid-cols-3 gap-4 text-center">
-          <div className="bg-dark-800/80 p-2.5 rounded-xl border border-dark-700">
-            <div className="text-[10px] text-dark-400">PERİYOT (T)</div>
-            <div className="text-lg font-mono font-black text-physics">
+        <div className="p-3 sm:p-4 bg-dark-900/95 border-t border-dark-800 grid grid-cols-3 gap-2 sm:gap-4 text-center">
+          <div className="bg-dark-800/80 p-2 sm:p-2.5 rounded-xl border border-dark-700">
+            <div className="text-[9px] sm:text-[10px] text-dark-400 font-bold truncate">PERİYOT (T)</div>
+            <div className="text-sm sm:text-lg font-mono font-black text-physics">
               {pendulumData.period.toFixed(2)} s
             </div>
           </div>
-          <div className="bg-dark-800/80 p-2.5 rounded-xl border border-dark-700">
-            <div className="text-[10px] text-dark-400">FREKANS (f)</div>
-            <div className="text-lg font-mono font-black text-emerald-400">
+          <div className="bg-dark-800/80 p-2 sm:p-2.5 rounded-xl border border-dark-700">
+            <div className="text-[9px] sm:text-[10px] text-dark-400 font-bold truncate">FREKANS (f)</div>
+            <div className="text-sm sm:text-lg font-mono font-black text-emerald-400">
               {pendulumData.frequency.toFixed(2)} Hz
             </div>
           </div>
-          <div className="bg-dark-800/80 p-2.5 rounded-xl border border-dark-700">
-            <div className="text-[10px] text-dark-400">KÜTLE / AĞIRLIK</div>
-            <div className="text-lg font-mono font-black text-amber-400">
+          <div className="bg-dark-800/80 p-2 sm:p-2.5 rounded-xl border border-dark-700">
+            <div className="text-[9px] sm:text-[10px] text-dark-400 font-bold truncate">KÜTLE</div>
+            <div className="text-sm sm:text-lg font-mono font-black text-amber-400">
               {mass.toFixed(1)} kg
             </div>
           </div>
